@@ -1,20 +1,18 @@
-///****************************************************************************/
-///****************************************************************************/
-///****     Copyright (C) 2012                                             ****/
-///****     Antonio Manuel Rodrigues Manso                                 ****/
-///****     e-mail: manso@ipt.pt                                           ****/
-///****     url   : http://orion.ipt.pt/~manso                             ****/
-///****     Instituto Politecnico de Tomar                                 ****/
-///****     Escola Superior de Tecnologia de Tomar                         ****/
-///****************************************************************************/
-///****************************************************************************/
-///****     This software was built with the purpose of investigating      ****/
-///****     and learning. Its use is free and is not provided any          ****/
-///****     guarantee or support.                                          ****/
-///****     If you met bugs, please, report them to the author             ****/
-///****                                                                    ****/
-///****************************************************************************/
-///****************************************************************************/
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//::                                                                         ::
+//::     Antonio Manuel Rodrigues Manso                                      ::
+//::                                                                         ::
+//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
+//::     Escola Superior de Tecnologia de Tomar                              ::
+//::     e-mail: manso@ipt.pt                                                ::
+//::     url   : http://orion.ipt.pt/~manso                                  ::
+//::                                                                         ::
+//::     This software was build with the purpose of investigate and         ::
+//::     learning.                                                           ::
+//::                                                                         ::
+//::                                                               (c)2020   ::
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//////////////////////////////////////////////////////////////////////////////
 package utils;
 
 import java.io.ByteArrayInputStream;
@@ -42,6 +40,7 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.IllegalFormatException;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
@@ -63,34 +62,15 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class SecurityUtils {
 
-   
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::::::       K E Y S        :::::::::::::::::::::::::::::::::    
     ///////////////////////////////////////////////////////////////////////////
-   /**
-     * Gera uma chave de criptogradia 
-     *
-     * @param keySize tamanho da chave 
-     * @param provider name of provider
-     * @param algorithm nome do algoritmo
-     * @return chave chave simétrica gerada
-     * @throws Exception se algo correr mal
-     */
-    public static Key generateKey(int keySize, String provider, String algorithm) throws Exception {
-        // gerador de chaves
-        KeyGenerator keyGen = KeyGenerator.getInstance(algorithm, provider);
-        //tamanho da chave
-        keyGen.init(keySize);
-        //gerar a chave
-        Key key = keyGen.generateKey();
-        return key;
-    }
     /**
      * Gera uma chave de criptogradia simetrica TrippleDes
      *
      * @param keySize tamanho da chave 128, 192 ou 256 bits
      * @return chave cahve simétrica gerada
-     * @throws Exception se algo correr mal
+     * @throws Exception muito improvável de ocurrer
      */
     public static Key generateAESKey(int keySize) throws Exception {
         return generateAESKey(keySize, "SunJCE");
@@ -102,7 +82,7 @@ public class SecurityUtils {
      * @param keySize tamanho da chave 128, 192 ou 256 bits
      * @param provider name of provider
      * @return chave cahve simétrica gerada
-     * @throws Exception se algo correr mal
+     * @throws Exception muito improvável de ocurrer
      */
     public static Key generateAESKey(int keySize, String provider) throws Exception {
         // gerador de chaves
@@ -113,7 +93,6 @@ public class SecurityUtils {
         Key key = keyGen.generateKey();
         return key;
     }
-    
 
     /**
      * Gera um par de chave para elliptic curves
@@ -143,6 +122,7 @@ public class SecurityUtils {
         }
         // gerador de chaves Eliptic curve
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
+
         // gerador de chaves Eliptic Curves Criptografy
         ECGenParameterSpec generationParam = new ECGenParameterSpec(secCurve);
         keyGen.initialize(generationParam, new SecureRandom());
@@ -252,16 +232,6 @@ public class SecurityUtils {
     }
 
     /**
-     * Gera uma chave AES
-     *
-     * @param key chave em array de bytes
-     * @return chave chave carregada através da base64
-     */
-    public static Key getKey(byte[] key, String algorithm) {
-        return new SecretKeySpec(key, algorithm);
-    }
-
-    /**
      * nomraliza o nome do ficheiro de chaves
      *
      * @param key chave para guardar
@@ -282,6 +252,7 @@ public class SecurityUtils {
         } else {
             return file + "." + KEY_EXTENSION_FILE;
         }
+        
     }
 
     /**
@@ -430,11 +401,7 @@ public class SecurityUtils {
         return cipher;
     }
 
-    public static void main(String[] args) throws Exception {
-        byte[] secret = encrypt("Ola".getBytes(), "pass");
-        byte[] plain = decrypt(secret, "pass");
-        System.out.println(new String(plain));
-    }
+   
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::::::::               ENCRYPT /  DECRYPT                   :::::::::::
@@ -511,11 +478,18 @@ public class SecurityUtils {
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::::::      I N T E G R I T Y         :::::::::::::::::::::::::::::::::    
     ///////////////////////////////////////////////////////////////////////////
-    public static byte[] getHash(byte[] data, String algorithm)
+    public static byte[] calculateHash(byte[] data, String algorithm)
             throws Exception {
         MessageDigest md = MessageDigest.getInstance(algorithm);
         md.update(data);
         return md.digest();
+    }
+    
+    public static String calculateHash(String data, String algorithm)
+            throws Exception {
+        return Base64.getEncoder().encodeToString(
+                calculateHash(data.getBytes(), algorithm)
+        );
     }
 
     public static boolean verifyHash(byte[] data, byte[] hash, String algorithm) throws Exception {
@@ -541,13 +515,9 @@ public class SecurityUtils {
         Signature sign;
         //verifica qual o algoritmo a ser utilizado
         switch (key.getAlgorithm()) {
-            case "RSA":
-                sign = Signature.getInstance("SHA256withRSA");
-                break;
-            case "EC":
-                sign = Signature.getInstance("SHA256withECDSA");
-                break;
-            default: //caso o algoritmo pedido não exista
+            case "RSA" -> sign = Signature.getInstance("SHA256withRSA");
+            case "EC" -> sign = Signature.getInstance("SHA256withECDSA");
+            default -> //caso o algoritmo pedido não exista
                 throw new InvalidAlgorithmParameterException();
         }
         //inicializa a assinatura com a chave
@@ -589,7 +559,7 @@ public class SecurityUtils {
         return sign.verify(signature);
     }
 
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::::::::        ZIP /  UNZIP                                :::::::::::
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     /**

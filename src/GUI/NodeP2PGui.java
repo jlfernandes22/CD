@@ -27,6 +27,8 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import utils.GuiUtils;
 import utils.RMI;
@@ -108,17 +110,13 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         imgWinner = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         txtMinerMessage = new javax.swing.JTextArea();
-        jInternalFrame1 = new javax.swing.JInternalFrame();
-        RegistarButton = new javax.swing.JButton();
-        NomeField = new javax.swing.JTextField();
-        PasswordField = new javax.swing.JTextField();
-        txtWalletPublicKey = new javax.swing.JTextField();
-        txtWalletPrivateKey = new javax.swing.JTextField();
-        txtWalletAESKey = new javax.swing.JTextField();
-        LoginButton = new javax.swing.JButton();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        txtWalletTransactions = new javax.swing.JTextArea();
-        txtBalance = new javax.swing.JTextField();
+        jPanel6 = new javax.swing.JPanel();
+        txtWalletPublicKey1 = new javax.swing.JTextField();
+        txtWalletPrivateKey1 = new javax.swing.JTextField();
+        txtWalletAESKey1 = new javax.swing.JTextField();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        txtWalletTransactions1 = new javax.swing.JTextArea();
+        txtBalance1 = new javax.swing.JTextField();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -307,107 +305,77 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE))
         );
 
         tpMain.addTab("Miner", jPanel4);
 
-        jInternalFrame1.setVisible(true);
-
-        RegistarButton.setText("Registar");
-        RegistarButton.addActionListener(new java.awt.event.ActionListener() {
+        txtWalletPublicKey1.setEditable(false);
+        txtWalletPublicKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletPublicKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Public Key"));
+        txtWalletPublicKey1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                RegistarButtonActionPerformed(evt);
+                txtWalletPublicKey1ActionPerformed(evt);
             }
         });
 
-        txtWalletPublicKey.setEditable(false);
-        txtWalletPublicKey.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletPublicKey.setBorder(javax.swing.BorderFactory.createTitledBorder("Public Key"));
+        txtWalletPrivateKey1.setEditable(false);
+        txtWalletPrivateKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletPrivateKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Private Key"));
 
-        txtWalletPrivateKey.setEditable(false);
-        txtWalletPrivateKey.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletPrivateKey.setBorder(javax.swing.BorderFactory.createTitledBorder("Private Key"));
+        txtWalletAESKey1.setEditable(false);
+        txtWalletAESKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletAESKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("AES Key"));
 
-        txtWalletAESKey.setEditable(false);
-        txtWalletAESKey.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletAESKey.setBorder(javax.swing.BorderFactory.createTitledBorder("AES Key"));
+        jScrollPane6.setBorder(javax.swing.BorderFactory.createTitledBorder("Blockchain Transactions"));
 
-        LoginButton.setText("Login");
-        LoginButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                LoginButtonActionPerformed(evt);
-            }
-        });
+        txtWalletTransactions1.setEditable(false);
+        txtWalletTransactions1.setColumns(20);
+        txtWalletTransactions1.setRows(5);
+        jScrollPane6.setViewportView(txtWalletTransactions1);
 
-        jScrollPane5.setBorder(javax.swing.BorderFactory.createTitledBorder("Blockchain Transactions"));
+        txtBalance1.setEditable(false);
+        txtBalance1.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
+        txtBalance1.setText("0.0");
+        txtBalance1.setBorder(javax.swing.BorderFactory.createTitledBorder("Balance"));
 
-        txtWalletTransactions.setEditable(false);
-        txtWalletTransactions.setColumns(20);
-        txtWalletTransactions.setRows(5);
-        jScrollPane5.setViewportView(txtWalletTransactions);
-
-        txtBalance.setEditable(false);
-        txtBalance.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
-        txtBalance.setText("0.0");
-        txtBalance.setBorder(javax.swing.BorderFactory.createTitledBorder("Balance"));
-
-        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
-        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
-        jInternalFrame1Layout.setHorizontalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jInternalFrame1Layout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(RegistarButton)
-                    .addComponent(LoginButton))
-                .addGap(63, 63, 63)
-                .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(PasswordField)
-                    .addComponent(NomeField, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtWalletPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtWalletPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtWalletAESKey, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(1113, 1113, 1113))
-            .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(txtBalance, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE)
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
-        );
-        jInternalFrame1Layout.setVerticalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jInternalFrame1Layout.createSequentialGroup()
-                .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jInternalFrame1Layout.createSequentialGroup()
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(RegistarButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(NomeField))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(PasswordField)
-                            .addComponent(LoginButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(txtWalletPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(5, 5, 5)
-                .addComponent(txtWalletPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(95, 95, 95)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                .addGap(70, 70, 70)
+                .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtWalletAESKey, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtBalance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
-        tpMain.addTab("Conta", jInternalFrame1);
+        tpMain.addTab("Conta", jPanel6);
 
         getContentPane().add(tpMain, java.awt.BorderLayout.PAGE_START);
 
@@ -474,36 +442,49 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }).start();
     }//GEN-LAST:event_btStartMinigActionPerformed
 
-    private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
-        try {
-            // Login
-            String name = NomeField.getText();
-            String password = PasswordField.getText();
-            User user = User.login(name, password);
-            txtWalletPublicKey.setText(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
-            txtWalletPrivateKey.setText(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
-            txtWalletAESKey.setText(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            txtWalletTransactions.setText(t.toString());
-            txtBalance.setText(t.getAmount() + "");
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-    }//GEN-LAST:event_LoginButtonActionPerformed
+    private void txtWalletPublicKey1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtWalletPublicKey1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtWalletPublicKey1ActionPerformed
 
-    private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
-        try {
-            //Criar Utilizador
-            String name = NomeField.getText();
-            String password = PasswordField.getText();
-            User user = User.register(name, password);
-            SaudeCerteira.SaudeWallet.create(user);
-            JOptionPane.showMessageDialog(this, "wallet created :" + name, "Create user", JOptionPane.WARNING_MESSAGE);
-            LoginButtonActionPerformed(evt);
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-    }//GEN-LAST:event_RegistarButtonActionPerformed
+    public JTextField getTxtBalance1() {
+        return txtBalance1;
+    }
+
+    public void setTxtBalance1(JTextField txtBalance1) {
+        this.txtBalance1 = txtBalance1;
+    }
+
+    public JTextField getTxtWalletAESKey1() {
+        return txtWalletAESKey1;
+    }
+
+    public void setTxtWalletAESKey1(String AesKey) {
+        this.txtWalletAESKey1.setText(AesKey);
+    }
+
+    public JTextField getTxtWalletPrivateKey1() {
+        return txtWalletPrivateKey1;
+    }
+
+    public void setTxtWalletPrivateKey1(String PrivateKeys) {
+        this.txtWalletPrivateKey1.setText(PrivateKeys);
+    }
+
+    public JTextField getTxtWalletPublicKey1() {
+        return txtWalletPublicKey1;
+    }
+
+    public void setTxtWalletPublicKey1(String PublicKey) {
+        this.txtWalletPublicKey1.setText(PublicKey);
+    }
+
+    public JTextArea getTxtWalletTransactions1() {
+        return txtWalletTransactions1;
+    }
+
+    public void setTxtWalletTransactions1(JTextArea txtWalletTransactions1) {
+        this.txtWalletTransactions1 = txtWalletTransactions1;
+    }
 
     /**
      * @param args the command line arguments
@@ -1052,10 +1033,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton LoginButton;
-    private javax.swing.JTextField NomeField;
-    private javax.swing.JTextField PasswordField;
-    private javax.swing.JButton RegistarButton;
     private javax.swing.JButton btAddTransaction;
     private javax.swing.JButton btConnect;
     private javax.swing.JButton btStartMinig;
@@ -1064,24 +1041,24 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private javax.swing.JLabel imgMiner;
     private javax.swing.JLabel imgServerRunning;
     private javax.swing.JLabel imgWinner;
-    private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JPanel pnNetwork;
     private javax.swing.JPanel pnServer;
     private javax.swing.JPanel pnTransaction;
     private javax.swing.JSpinner spZeros;
     private javax.swing.JTabbedPane tpMain;
-    private javax.swing.JTextField txtBalance;
+    private javax.swing.JTextField txtBalance1;
     private javax.swing.JTextArea txtLstTransactions;
     private javax.swing.JTextArea txtMinerMessage;
     private javax.swing.JTextArea txtNetwork;
@@ -1091,10 +1068,10 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private javax.swing.JTextField txtServerListeningPort;
     private javax.swing.JTextPane txtServerLog;
     private javax.swing.JTextField txtTransaction;
-    private javax.swing.JTextField txtWalletAESKey;
-    private javax.swing.JTextField txtWalletPrivateKey;
-    private javax.swing.JTextField txtWalletPublicKey;
-    private javax.swing.JTextArea txtWalletTransactions;
+    private javax.swing.JTextField txtWalletAESKey1;
+    private javax.swing.JTextField txtWalletPrivateKey1;
+    private javax.swing.JTextField txtWalletPublicKey1;
+    private javax.swing.JTextArea txtWalletTransactions1;
     // End of variables declaration//GEN-END:variables
 
     @Override

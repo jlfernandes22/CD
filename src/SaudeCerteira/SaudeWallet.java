@@ -16,8 +16,8 @@
 
 package SaudeCerteira;
 
-import blockchain2.core.Block;
-import blockchain2.core.BlockChain;
+import core.Block;
+import core.BlockChain;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
