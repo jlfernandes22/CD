@@ -450,8 +450,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         return txtBalance1;
     }
 
-    public void setTxtBalance1(JTextField txtBalance1) {
-        this.txtBalance1 = txtBalance1;
+    public void setTxtBalance1(String Balance) {
+        this.txtBalance1.setText(Balance);
     }
 
     public JTextField getTxtWalletAESKey1() {
@@ -482,8 +482,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         return txtWalletTransactions1;
     }
 
-    public void setTxtWalletTransactions1(JTextArea txtWalletTransactions1) {
-        this.txtWalletTransactions1 = txtWalletTransactions1;
+    public void setTxtWalletTransactions1(String transicoes) {
+        this.txtWalletTransactions1.setText(transicoes);
     }
 
     /**

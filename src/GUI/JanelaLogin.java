@@ -4,6 +4,7 @@
  */
 package GUI;
 
+import SaudeCerteira.SaudeWallet;
 import SaudeCerteira.User;
 import java.util.Base64;
 import javax.swing.JOptionPane;
@@ -115,15 +116,13 @@ public class JanelaLogin extends javax.swing.JFrame {
           
             this.dispose();
             
+            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
             janelaPrincipal.setTxtWalletPublicKey1(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
             janelaPrincipal.setTxtWalletPrivateKey1(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
             janelaPrincipal.setTxtWalletAESKey1(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            //            txtWalletPublicKey.setText(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
-            //            txtWalletPrivateKey.setText(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
-            //            txtWalletAESKey.setText(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            //            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            //            txtWalletTransactions.setText(t.toString());
-            //            txtBalance.setText(t.getAmount() + "");
+            janelaPrincipal.setTxtWalletTransactions1(t.toString());
+            janelaPrincipal.setTxtBalance1(t.getAmount() + "");
+
         } catch (Exception ex) {
             System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
