@@ -228,11 +228,16 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         jPanel2.setLayout(new java.awt.BorderLayout());
 
         txtTransaction.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
-        txtTransaction.setText("Transaction 1");
+        txtTransaction.setText("...");
+        txtTransaction.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtTransactionActionPerformed(evt);
+            }
+        });
         jPanel2.add(txtTransaction, java.awt.BorderLayout.CENTER);
 
         btAddTransaction.setIcon(new javax.swing.ImageIcon(getClass().getResource("/multimedia/transaction.png"))); // NOI18N
-        btAddTransaction.setText("Add Transaction");
+        btAddTransaction.setText("Nova Receita");
         btAddTransaction.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btAddTransaction.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         btAddTransaction.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -245,7 +250,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         pnTransaction.add(jPanel2, java.awt.BorderLayout.PAGE_START);
 
-        tpMain.addTab("Transactions", pnTransaction);
+        tpMain.addTab("Receitas Médicas", pnTransaction);
 
         spZeros.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         spZeros.setModel(new javax.swing.SpinnerNumberModel(3, 2, null, 1));
@@ -382,26 +387,36 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartServerActionPerformed
+    private void txtWalletPublicKey1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtWalletPublicKey1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtWalletPublicKey1ActionPerformed
+
+    private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
+
+        new Thread(() -> {
+            try {
+                String txt = Base64.getEncoder().encodeToString(txtLstTransactions.getText().getBytes());
+                int dif = (int) spZeros.getValue();
+                myremoteObject.mine(txt, dif);
+
+            } catch (RemoteException ex) {
+                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }).start();
+    }//GEN-LAST:event_btStartMinigActionPerformed
+
+    private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
         try {
-            //:::::::::: Objeto remoto  :::::::::::::::
-            int port = Integer.parseInt(txtServerListeningPort.getText());
-            String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
-            myremoteObject = new RemoteNodeObject(port, this);
-            RMI.startRemoteObject(myremoteObject, port, name);
-            //:::::::: GUI  ::::::::::::::::
-            this.setTitle(RMI.getRemoteName(port, name));
-            this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
-        } catch (Exception ex) {
-            onException(ex, "Starting server");
+            myremoteObject.addTransaction(txtTransaction.getText());
+        } catch (RemoteException ex) {
+            onException(ex, "transactions");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }//GEN-LAST:event_btAddTransactionActionPerformed
 
-    }//GEN-LAST:event_btStartServerActionPerformed
-
-    private void txtNodeAddressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNodeAddressActionPerformed
+    private void txtTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTransactionActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNodeAddressActionPerformed
+    }//GEN-LAST:event_txtTransactionActionPerformed
 
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
         try {
@@ -416,35 +431,28 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER)
-            btConnectActionPerformed(null);
+        btConnectActionPerformed(null);
     }//GEN-LAST:event_txtNodeAddressKeyPressed
 
-    private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
+    private void txtNodeAddressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNodeAddressActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNodeAddressActionPerformed
+
+    private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartServerActionPerformed
         try {
-            myremoteObject.addTransaction(txtTransaction.getText());
-        } catch (RemoteException ex) {
-            onException(ex, "transactions");
+            //:::::::::: Objeto remoto  :::::::::::::::
+            int port = Integer.parseInt(txtServerListeningPort.getText());
+            String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
+            myremoteObject = new RemoteNodeObject(port, this);
+            RMI.startRemoteObject(myremoteObject, port, name);
+            //:::::::: GUI  ::::::::::::::::
+            this.setTitle(RMI.getRemoteName(port, name));
+            this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
+        } catch (Exception ex) {
+            onException(ex, "Starting server");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_btAddTransactionActionPerformed
-
-    private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
-
-        new Thread(() -> {
-            try {
-                String txt = Base64.getEncoder().encodeToString(txtLstTransactions.getText().getBytes());
-                int dif = (int) spZeros.getValue();
-                myremoteObject.mine(txt, dif);
-                
-            } catch (RemoteException ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            }
-        }).start();
-    }//GEN-LAST:event_btStartMinigActionPerformed
-
-    private void txtWalletPublicKey1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtWalletPublicKey1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtWalletPublicKey1ActionPerformed
+    }//GEN-LAST:event_btStartServerActionPerformed
 
     public JTextField getTxtBalance1() {
         return txtBalance1;

@@ -47,14 +47,14 @@ public class MyService extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
-        jLabel2.setText("My BlocBhain Service");
+        jLabel2.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
+        jLabel2.setText("Saúde Certeira");
 
         txtTransaction.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
-        txtTransaction.setText("Transaction 1");
+        txtTransaction.setText("...");
 
         btAddTransaction.setIcon(new javax.swing.ImageIcon(getClass().getResource("/multimedia/transaction.png"))); // NOI18N
-        btAddTransaction.setText("Add Transaction");
+        btAddTransaction.setText("Nova Receita");
         btAddTransaction.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btAddTransaction.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         btAddTransaction.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -73,7 +73,7 @@ public class MyService extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btAddTransaction, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtTransaction, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE))))
+                        .addComponent(txtTransaction, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE))))
             .addComponent(txtNodeAddress)
         );
         layout.setVerticalGroup(
@@ -87,7 +87,7 @@ public class MyService extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btAddTransaction)
                     .addComponent(txtTransaction, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
 
         pack();

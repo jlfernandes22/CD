@@ -268,8 +268,8 @@
         <Container class="javax.swing.JPanel" name="pnTransaction">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Transactions">
-                <Property name="tabTitle" type="java.lang.String" value="Transactions"/>
+              <JTabbedPaneConstraints tabName="Receitas M&#xe9;dicas">
+                <Property name="tabTitle" type="java.lang.String" value="Receitas M&#xe9;dicas"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -313,8 +313,11 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Courier New" size="14" style="1"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Transaction 1"/>
+                    <Property name="text" type="java.lang.String" value="..."/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtTransactionActionPerformed"/>
+                  </Events>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
                       <BorderConstraints direction="Center"/>
@@ -326,7 +329,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/multimedia/transaction.png"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Add Transaction"/>
+                    <Property name="text" type="java.lang.String" value="Nova Receita"/>
                     <Property name="horizontalTextPosition" type="int" value="0"/>
                     <Property name="verticalAlignment" type="int" value="1"/>
                     <Property name="verticalTextPosition" type="int" value="3"/>
