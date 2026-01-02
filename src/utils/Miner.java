@@ -12,12 +12,13 @@
 //::                                                                         ::
 //::                                                               (c)2024   ::
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//////////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////////
 package utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -36,11 +37,17 @@ public class Miner {
 
     }
 
+    //shared objects
+    AtomicInteger nonce = new AtomicInteger(0); //nonce of message
+    
+    public void stopMining(int number){
+        nonce.set(number);
+    }
+
     public int mine(String msg, int dificulty) {
         try {
-            //shared objects
-            AtomicInteger nonce = new AtomicInteger(0); //nonce of message
-            AtomicInteger ticket = new AtomicInteger(0); // tickets to numbers
+            Random rnd = new Random();
+            AtomicInteger ticket = new AtomicInteger(Math.abs(rnd.nextInt()) / 2); // tickets to numbers
             MinerThr thr[] = new MinerThr[Runtime.getRuntime().availableProcessors()];
             for (int i = 0; i < thr.length; i++) {
                 thr[i] = new MinerThr(nonce, ticket, dificulty, msg);
