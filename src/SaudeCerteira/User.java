@@ -39,6 +39,17 @@ public class User implements Serializable{
     public static final String FILE_PATH = "data_user/";
 
     private String userName;
+    private String dataNascimento;
+    private String identidadeCC;
+    private String numeroUtente;
+    private String sexo;
+    private String paisnacionalidade;
+    private String naturalidade;
+    private String morada;
+    private String NISS;
+    private String telemovel;
+    private boolean medico;
+    private String unidadeSaude;
     private PublicKey publicKey;
     transient private PrivateKey privateKey; // não gravar as chaves nas streams
     transient private Key aesKey; // não gravar as chaves nas streams
@@ -67,14 +78,80 @@ public class User implements Serializable{
     public PrivateKey getPrivateKey() {
         return privateKey;
     }
+    
+    public String getDataNascimento() {
+        return dataNascimento;
+    }
 
-    public static User register(String name, String password) throws Exception {
+    public String getIdentidadeCC() {
+        return identidadeCC;
+    }
+
+    public boolean isMedico() {
+        return medico;
+    }
+    
+    public String getUnidadeSaude(){
+        return unidadeSaude;
+    }
+
+    public String getNumeroUtente() {
+        return numeroUtente;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public String getPaisnacionalidade() {
+        return paisnacionalidade;
+    }
+
+    public String getNaturalidade() {
+        return naturalidade;
+    }
+
+    public String getMorada() {
+        return morada;
+    }
+
+    public String getNISS() {
+        return NISS;
+    }
+
+    public String getTelemovel() {
+        return telemovel;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+    
+    
+    
+    
+
+    public static User register(String name, String password, String dataNascimento, 
+                                String identidadeCC, String numeroUtente, String sexo,
+                                String paisnacionalidade, String naturalidade, String morada,
+                                String NISS, String telemovel, boolean medico, String unidadeSaude) throws Exception {
         //verificar se o user já esta registado
         if( new File(FILE_PATH + name + ".pub").exists())
             throw new Exception("User already exists :" + name);
         
         User user = new User();
         user.userName = name;
+        user.dataNascimento = dataNascimento;
+        user.identidadeCC = identidadeCC;
+        user.medico = medico;
+        user.unidadeSaude = unidadeSaude;
+        user.numeroUtente = numeroUtente;
+        user.sexo = sexo;
+        user.paisnacionalidade = paisnacionalidade;
+        user.naturalidade = naturalidade;
+        user.morada = morada;
+        user.NISS = NISS;
+        user.telemovel = telemovel;
         //gerar as chaves
         user.aesKey = SecurityUtils.generateAESKey(256);
         KeyPair kp = SecurityUtils.generateRSAKeyPair(2048);
@@ -139,5 +216,7 @@ public class User implements Serializable{
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     private static final long serialVersionUID = 202510081647L;
     //:::::::::::::::::::::::::::  Copyright(c) M@nso  2025  :::::::::::::::::::
+
+    
 
 }

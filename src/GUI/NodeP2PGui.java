@@ -17,6 +17,7 @@ package GUI;
 
 import SaudeCerteira.SaudeWallet;
 import SaudeCerteira.User;
+import SaudeCerteira.WalletTransaction;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -296,7 +297,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(imgWinner))
                     .addComponent(jScrollPane4))
-                .addContainerGap(692, Short.MAX_VALUE))
+                .addContainerGap(763, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -310,7 +311,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE))
         );
 
         tpMain.addTab("Miner", jPanel4);
@@ -343,6 +344,11 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtBalance1.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
         txtBalance1.setText("0.0");
         txtBalance1.setBorder(javax.swing.BorderFactory.createTitledBorder("Balance"));
+        txtBalance1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtBalance1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -373,7 +379,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 286, Short.MAX_VALUE)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -382,7 +388,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         tpMain.addTab("Conta", jPanel6);
 
-        getContentPane().add(tpMain, java.awt.BorderLayout.PAGE_START);
+        getContentPane().add(tpMain, java.awt.BorderLayout.LINE_END);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -454,6 +460,10 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }
     }//GEN-LAST:event_btStartServerActionPerformed
 
+    private void txtBalance1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtBalance1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtBalance1ActionPerformed
+
     public JTextField getTxtBalance1() {
         return txtBalance1;
     }
@@ -490,8 +500,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         return txtWalletTransactions1;
     }
 
-    public void setTxtWalletTransactions1(String transicoes) {
-        this.txtWalletTransactions1.setText(transicoes);
+    public void setTxtWalletTransactions1(list<WalletTransaction> transacao) {
+        this.txtWalletTransactions1.setText(transacao.To);
     }
 
     /**

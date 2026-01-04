@@ -127,7 +127,7 @@ public class JanelaLogin extends javax.swing.JFrame {
             String name = UtilizadorField.getText();
             String password = PasswordField.getText();
             User user = User.login(name, password);
-            NodeP2PGui janelaPrincipal = new NodeP2PGui();
+            PerfilUser janelaPrincipal = new PerfilUser();
 
            
             janelaPrincipal.setLocationRelativeTo(null);
@@ -137,11 +137,12 @@ public class JanelaLogin extends javax.swing.JFrame {
             this.dispose();
             
             SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            janelaPrincipal.setTxtWalletPublicKey1(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
-            janelaPrincipal.setTxtWalletPrivateKey1(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
-            janelaPrincipal.setTxtWalletAESKey1(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            janelaPrincipal.setTxtWalletTransactions1(t.toString());
-            janelaPrincipal.setTxtBalance1(t.getAmount() + "");
+            janelaPrincipal.setTxtPublicKey(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
+            janelaPrincipal.setTxtPrivateKey(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
+            janelaPrincipal.setTxtAesKey(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
+            janelaPrincipal.setTxtUtilizadorNome(name);
+            
+           
 
         } catch (Exception ex) {
             System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
@@ -149,17 +150,12 @@ public class JanelaLogin extends javax.swing.JFrame {
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
-        try {
-            //Criar Utilizador
-            String name = UtilizadorField.getText();
-            String password = PasswordField.getText();
-            User user = User.register(name, password);
-            SaudeCerteira.SaudeWallet.create(user);
-            JOptionPane.showMessageDialog(this, "wallet created :" + name, "Create user", JOptionPane.WARNING_MESSAGE);
-            LoginButtonActionPerformed(evt);
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
+       
+        JanelaRegister janela = new JanelaRegister();
+        janela.setLocationRelativeTo(null);
+        janela.setVisible(true);
+        this.dispose();
+        
     }//GEN-LAST:event_RegistarButtonActionPerformed
 
     /**

@@ -45,7 +45,7 @@
     <Container class="javax.swing.JTabbedPane" name="tpMain">
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
-          <BorderConstraints direction="First"/>
+          <BorderConstraints direction="After"/>
         </Constraint>
       </Constraints>
 
@@ -374,7 +374,7 @@
                           </Group>
                           <Component id="jScrollPane4" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="692" max="32767" attributes="0"/>
+                      <EmptySpace pref="763" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -391,7 +391,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="txtNonce" min="-2" pref="60" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jScrollPane4" pref="561" max="32767" attributes="0"/>
+                      <Component id="jScrollPane4" pref="717" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -516,7 +516,7 @@
                       <Component id="txtWalletPrivateKey1" min="-2" pref="97" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="txtWalletAESKey1" min="-2" pref="97" max="-2" attributes="0"/>
-                      <EmptySpace pref="130" max="32767" attributes="0"/>
+                      <EmptySpace pref="286" max="32767" attributes="0"/>
                       <Component id="jScrollPane6" min="-2" pref="110" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="txtBalance1" min="-2" max="-2" attributes="0"/>
@@ -604,6 +604,9 @@
                   </Border>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtBalance1ActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

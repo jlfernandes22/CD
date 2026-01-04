@@ -54,13 +54,30 @@ public class SaudeWallet implements Serializable {
     }
     /**
      * Cria uma nova carteira e as respetivas credenciais (public, privada e AES)
-     * @param user nome do utilizador
+     * @param name
+     * @param dataNascimento
+     * @param identidadeCC
+     * @param medico
+     * @param numeroUtente
+     * @param sexo
+     * @param paisnacionalidade
+     * @param naturalidade
+     * @param morada
+     * @param NISS
+     * @param telemovel
      * @param password password 
+     * @param unidadeSaude 
      * @return carteira criada
      * @throws Exception 
      */
-    public static SaudeWallet create(String user, String password) throws Exception { 
-       return create(User.register(user, password));
+    public static SaudeWallet create(String name, String password, String dataNascimento, 
+                                String identidadeCC, String numeroUtente, String sexo,
+                                String paisnacionalidade, String naturalidade, String morada,
+                                String NISS, String telemovel, boolean medico, String unidadeSaude) throws Exception { 
+    
+       return create(User.register(name, password, dataNascimento, identidadeCC, 
+                                    numeroUtente, sexo, paisnacionalidade, naturalidade, morada, 
+                                    NISS, telemovel, medico, unidadeSaude));
     }
     /**
      * Cria uma carteira com um utilizador já existente
@@ -201,8 +218,8 @@ public class SaudeWallet implements Serializable {
         //apagar a blockchain
         BlockChain.deleteAllBlocks();
         //criar as carteiras do master e do systema
-        SaudeWallet.create("Master", "123qwe");
-        SaudeWallet.create("System", "123qwe");
+        SaudeWallet.create("Master", "123qwe",null,null,null,null,null,null,null,null,null,true,null);
+        SaudeWallet.create("System", "123qwe",null,null,null,null,null,null,null,null,null,true,null);
         //criar a transação que transfere 1000 moedas do system para o master
         ArrayList<SaudeTransaction> data = new ArrayList<>();
         SaudeTransaction t = new SaudeTransaction("System", "Master", 1000, "123qwe");
