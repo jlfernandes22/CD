@@ -37,6 +37,7 @@ public interface RemoteNodeInterface extends Remote {
     //::::::::::: T R A N S A C T I O N S  :::::::::::
     public void addTransaction(String data) throws RemoteException;
 
+
     public List<String> getTransactions() throws RemoteException;
 
     //::::::::::: M I N E R  :::::::::::

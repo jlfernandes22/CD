@@ -17,7 +17,6 @@ package GUI;
 
 import SaudeCerteira.SaudeWallet;
 import SaudeCerteira.User;
-import SaudeCerteira.WalletTransaction;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -81,6 +80,13 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         jPanel1 = new javax.swing.JPanel();
         folderUtils1 = new utils.FolderUtils();
+        jPanel6 = new javax.swing.JPanel();
+        txtWalletPublicKey1 = new javax.swing.JTextField();
+        txtWalletPrivateKey1 = new javax.swing.JTextField();
+        txtWalletAESKey1 = new javax.swing.JTextField();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        txtWalletTransactions1 = new javax.swing.JTextArea();
+        txtBalance1 = new javax.swing.JTextField();
         tpMain = new javax.swing.JTabbedPane();
         pnServer = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -111,13 +117,12 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         imgWinner = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         txtMinerMessage = new javax.swing.JTextArea();
-        jPanel6 = new javax.swing.JPanel();
-        txtWalletPublicKey1 = new javax.swing.JTextField();
-        txtWalletPrivateKey1 = new javax.swing.JTextField();
-        txtWalletAESKey1 = new javax.swing.JTextField();
-        jScrollPane6 = new javax.swing.JScrollPane();
-        txtWalletTransactions1 = new javax.swing.JTextArea();
-        txtBalance1 = new javax.swing.JTextField();
+        jPanel8 = new javax.swing.JPanel();
+        jButton3 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -128,6 +133,71 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 100, Short.MAX_VALUE)
+        );
+
+        txtWalletPublicKey1.setEditable(false);
+        txtWalletPublicKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletPublicKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Public Key"));
+        txtWalletPublicKey1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtWalletPublicKey1ActionPerformed(evt);
+            }
+        });
+
+        txtWalletPrivateKey1.setEditable(false);
+        txtWalletPrivateKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletPrivateKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Private Key"));
+
+        txtWalletAESKey1.setEditable(false);
+        txtWalletAESKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
+        txtWalletAESKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("AES Key"));
+
+        jScrollPane6.setBorder(javax.swing.BorderFactory.createTitledBorder("Blockchain Transactions"));
+
+        txtWalletTransactions1.setEditable(false);
+        txtWalletTransactions1.setColumns(20);
+        txtWalletTransactions1.setRows(5);
+        jScrollPane6.setViewportView(txtWalletTransactions1);
+
+        txtBalance1.setEditable(false);
+        txtBalance1.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
+        txtBalance1.setText("0.0");
+        txtBalance1.setBorder(javax.swing.BorderFactory.createTitledBorder("Balance"));
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(95, 95, 95)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                .addGap(70, 70, 70)
+                .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 245, Short.MAX_VALUE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -286,18 +356,19 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtNonce, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btStartMinig)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(imgMiner)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(imgWinner))
-                    .addComponent(jScrollPane4))
-                .addContainerGap(763, Short.MAX_VALUE))
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(txtNonce, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                            .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(btStartMinig)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(imgMiner)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(imgWinner)))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(781, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -310,85 +381,73 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                     .addComponent(imgWinner, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE))
+                .addGap(114, 114, 114)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         tpMain.addTab("Miner", jPanel4);
 
-        txtWalletPublicKey1.setEditable(false);
-        txtWalletPublicKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletPublicKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Public Key"));
-        txtWalletPublicKey1.addActionListener(new java.awt.event.ActionListener() {
+        jButton3.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton3.setText("Perfil");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtWalletPublicKey1ActionPerformed(evt);
+                jButton3ActionPerformed(evt);
             }
         });
 
-        txtWalletPrivateKey1.setEditable(false);
-        txtWalletPrivateKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletPrivateKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("Private Key"));
-
-        txtWalletAESKey1.setEditable(false);
-        txtWalletAESKey1.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
-        txtWalletAESKey1.setBorder(javax.swing.BorderFactory.createTitledBorder("AES Key"));
-
-        jScrollPane6.setBorder(javax.swing.BorderFactory.createTitledBorder("Blockchain Transactions"));
-
-        txtWalletTransactions1.setEditable(false);
-        txtWalletTransactions1.setColumns(20);
-        txtWalletTransactions1.setRows(5);
-        jScrollPane6.setViewportView(txtWalletTransactions1);
-
-        txtBalance1.setEditable(false);
-        txtBalance1.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
-        txtBalance1.setText("0.0");
-        txtBalance1.setBorder(javax.swing.BorderFactory.createTitledBorder("Balance"));
-        txtBalance1.addActionListener(new java.awt.event.ActionListener() {
+        jButton1.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton1.setText("Criar Receita");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtBalance1ActionPerformed(evt);
+                jButton1ActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, 1089, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGap(95, 95, 95)
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        jButton2.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton2.setText("Sair");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane5.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 1108, Short.MAX_VALUE)
+                    .addGroup(jPanel8Layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addGap(55, 55, 55)
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton3)))
+                .addContainerGap())
         );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addGap(70, 70, 70)
-                .addComponent(txtWalletPublicKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(txtWalletPrivateKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(txtWalletAESKey1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 286, Short.MAX_VALUE)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(jButton1)
+                    .addComponent(jButton3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 777, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        tpMain.addTab("Conta", jPanel6);
+        tpMain.addTab("receitas", jPanel8);
 
-        getContentPane().add(tpMain, java.awt.BorderLayout.LINE_END);
+        getContentPane().add(tpMain, java.awt.BorderLayout.PAGE_START);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -460,9 +519,21 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }
     }//GEN-LAST:event_btStartServerActionPerformed
 
-    private void txtBalance1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtBalance1ActionPerformed
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtBalance1ActionPerformed
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+        CriarReceitas criarRec = new CriarReceitas();
+        criarRec.setLocationRelativeTo(null);
+        criarRec.setVisible(true);
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     public JTextField getTxtBalance1() {
         return txtBalance1;
@@ -500,8 +571,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         return txtWalletTransactions1;
     }
 
-    public void setTxtWalletTransactions1(list<WalletTransaction> transacao) {
-        this.txtWalletTransactions1.setText(transacao.To);
+    public void setTxtWalletTransactions1(String transicoes) {
+        this.txtWalletTransactions1.setText(transicoes);
     }
 
     /**
@@ -1059,6 +1130,9 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private javax.swing.JLabel imgMiner;
     private javax.swing.JLabel imgServerRunning;
     private javax.swing.JLabel imgWinner;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -1066,11 +1140,14 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JPanel pnNetwork;
     private javax.swing.JPanel pnServer;
     private javax.swing.JPanel pnTransaction;

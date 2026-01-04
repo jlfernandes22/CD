@@ -110,9 +110,10 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         return new ArrayList<>(network);
     }
 //::::::::::: T R A NS A C T IO N S  :::::::::::
-
     @Override
     public void addTransaction(String data) throws RemoteException {
+     
+
         if (this.transactions.contains(data)) {
             return;
         }
@@ -128,6 +129,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         for (String t : transactions) {
             System.out.println(t);
         }
+    
     }
 
     @Override
@@ -189,5 +191,9 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
            return MinerDistibuted.getHash(miner.message+miner.getNonce());
        }
 
+    
 
-}
+    }
+
+
+

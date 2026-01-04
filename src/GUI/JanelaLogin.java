@@ -127,7 +127,7 @@ public class JanelaLogin extends javax.swing.JFrame {
             String name = UtilizadorField.getText();
             String password = PasswordField.getText();
             User user = User.login(name, password);
-            PerfilUser janelaPrincipal = new PerfilUser();
+            NodeP2PGui janelaPrincipal = new NodeP2PGui();
 
            
             janelaPrincipal.setLocationRelativeTo(null);
@@ -137,11 +137,7 @@ public class JanelaLogin extends javax.swing.JFrame {
             this.dispose();
             
             SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            janelaPrincipal.setTxtPublicKey(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
-            janelaPrincipal.setTxtPrivateKey(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
-            janelaPrincipal.setTxtAesKey(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            janelaPrincipal.setTxtUtilizadorNome(name);
-            
+         
            
 
         } catch (Exception ex) {
