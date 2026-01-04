@@ -221,6 +221,11 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtServerListeningPort.setText("10010");
         txtServerListeningPort.setBorder(javax.swing.BorderFactory.createTitledBorder("Port Number"));
         txtServerListeningPort.setPreferredSize(new java.awt.Dimension(200, 36));
+        txtServerListeningPort.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtServerListeningPortActionPerformed(evt);
+            }
+        });
         jPanel7.add(txtServerListeningPort);
 
         txtServerListeningObjectName.setEditable(false);
@@ -505,14 +510,30 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartServerActionPerformed
         try {
+            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            // [FIX] FORCE RMI TO USE THE REAL IP (Not Docker/Localhost)
+            // This MUST be done before creating the RemoteNodeObject
+            String realIp = RemoteNodeObject.getRealIp();
+            System.setProperty("java.rmi.server.hostname", realIp);
+            System.out.println("RMI Hostname forced to: " + realIp);
+            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
             //:::::::::: Objeto remoto  :::::::::::::::
             int port = Integer.parseInt(txtServerListeningPort.getText());
             String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
+            
+            // Now create the object (It will now use the correct IP in the Stub)
             myremoteObject = new RemoteNodeObject(port, this);
+            
             RMI.startRemoteObject(myremoteObject, port, name);
+            
             //:::::::: GUI  ::::::::::::::::
             this.setTitle(RMI.getRemoteName(port, name));
             this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
+            
+            // Re-enable miner listener now that object exists
+             if(myremoteObject.miner != null) myremoteObject.miner.addListener(this);
+             
         } catch (Exception ex) {
             onException(ex, "Starting server");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
@@ -534,6 +555,10 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void txtServerListeningPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtServerListeningPortActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtServerListeningPortActionPerformed
 
     public JTextField getTxtBalance1() {
         return txtBalance1;
