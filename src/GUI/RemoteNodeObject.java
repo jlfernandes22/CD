@@ -76,27 +76,42 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
      * [NEW HELPER] Static method to find the real IP. 
      * We make it static so NodeP2PGui can also use it to set the RMI hostname property.
      */
+    /**
+     * [UPDATED HELPER] Finds the real LAN IP, ignoring Docker/VM interfaces.
+     */
     public static String getRealIp() {
+        String backupIp = "127.0.0.1";
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface iface = interfaces.nextElement();
-                // Skip loopback (127.0.0.1) and inactive interfaces
+                // Skip loopback and inactive interfaces
                 if (iface.isLoopback() || !iface.isUp()) continue;
 
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
-                    // Check for IPv4
+                    
                     if (addr instanceof Inet4Address) {
-                        return addr.getHostAddress();
+                        String ip = addr.getHostAddress();
+                        
+                        // PRIORITIZE: Home/Office networks usually start with 192.168 or 10.
+                        if (ip.startsWith("192.168.") || ip.startsWith("10.")) {
+                            return ip;
+                        }
+                        
+                        // IGNORE: Docker/WSL usually start with 172.
+                        // We save it just in case we find nothing else, but we keep looking.
+                        if (!ip.startsWith("172.")) {
+                             backupIp = ip;
+                        }
                     }
                 }
             }
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        return "127.0.0.1"; // Fallback
+        return backupIp;
     }
 
     @Override
