@@ -1,27 +1,31 @@
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 //::                                                                         ::
-//::     Antonio Manuel Rodrigues Manso                                      ::
+//::      Antonio Manuel Rodrigues Manso                                     ::
 //::                                                                         ::
-//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
-//::     Escola Superior de Tecnologia de Tomar                              ::
-//::     e-mail: manso@ipt.pt                                                ::
-//::     url   : http://orion.ipt.pt/~manso                                  ::
+//::      I N S T I T U T O    P O L I T E C N I C O    D E    T O M A R     ::
+//::      Escola Superior de Tecnologia de Tomar                             ::
+//::      e-mail: manso@ipt.pt                                               ::
+//::      url    : http://orion.ipt.pt/~manso                                ::
 //::                                                                         ::
-//::     This software was build with the purpose of investigate and         ::
-//::     learning.                                                           ::
+//::      This software was build with the purpose of investigate and        ::
+//::      learning.                                                          ::
+//::                                                                         ::
 //::                                                                         ::
 //::                                                               (c)2024   ::
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  //////////////////////////////////////////////////////////////////////////////
 package GUI;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -47,8 +51,9 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     public RemoteNodeObject(int port, Nodelistener listener) throws RemoteException {
         super(port);
         try {
-            //local adress of server
-            String host = InetAddress.getLocalHost().getHostAddress();
+            // [FIX] Use the helper method to get the REAL LAN IP
+            String host = getRealIp();
+            
             this.address = RMI.getRemoteName(host, port, REMOTE_OBJECT_NAME);
             this.network = new CopyOnWriteArraySet<>();
             this.transactions = new CopyOnWriteArraySet<>();
@@ -59,13 +64,39 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             } else {
                 System.err.println("Object " + address + " listening");
             }
-        } catch (UnknownHostException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(RemoteNodeObject.class.getName()).log(Level.SEVERE, null, ex);
             if (listener != null) {
                 listener.onException(ex, "Start remote Object");
             }
         }
+    }
 
+    /**
+     * [NEW HELPER] Static method to find the real IP. 
+     * We make it static so NodeP2PGui can also use it to set the RMI hostname property.
+     */
+    public static String getRealIp() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                // Skip loopback (127.0.0.1) and inactive interfaces
+                if (iface.isLoopback() || !iface.isUp()) continue;
+
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    // Check for IPv4
+                    if (addr instanceof Inet4Address) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return "127.0.0.1"; // Fallback
     }
 
     @Override
@@ -112,7 +143,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 //::::::::::: T R A NS A C T IO N S  :::::::::::
     @Override
     public void addTransaction(String data) throws RemoteException {
-     
+      
 
         if (this.transactions.contains(data)) {
             return;
@@ -129,7 +160,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         for (String t : transactions) {
             System.out.println(t);
         }
-    
+     
     }
 
     @Override
@@ -168,7 +199,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         miner.stopMining(nonce);
         for (RemoteNodeInterface node : network) {
             node.stopMining(nonce);
-        }         
+        }          
     }
 
     @Override
@@ -190,10 +221,4 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
        public String getHash() throws RemoteException{
            return MinerDistibuted.getHash(miner.message+miner.getNonce());
        }
-
-    
-
-    }
-
-
-
+}
