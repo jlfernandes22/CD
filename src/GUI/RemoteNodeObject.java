@@ -15,16 +15,13 @@
  //////////////////////////////////////////////////////////////////////////////
 package GUI;
 
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -50,9 +47,8 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     public RemoteNodeObject(int port, Nodelistener listener) throws RemoteException {
         super(port);
         try {
-            // UPDATED: Instead of getLocalHost(), we call our helper method
-            String host = getRealIp();
-            
+            //local adress of server
+            String host = InetAddress.getLocalHost().getHostAddress();
             this.address = RMI.getRemoteName(host, port, REMOTE_OBJECT_NAME);
             this.network = new CopyOnWriteArraySet<>();
             this.transactions = new CopyOnWriteArraySet<>();
@@ -63,45 +59,13 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             } else {
                 System.err.println("Object " + address + " listening");
             }
-        } catch (Exception ex) {
+        } catch (UnknownHostException ex) {
             Logger.getLogger(RemoteNodeObject.class.getName()).log(Level.SEVERE, null, ex);
             if (listener != null) {
                 listener.onException(ex, "Start remote Object");
             }
         }
 
-    }
-
-    /**
-     * Helper method to find the real LAN IP address.
-     * This iterates through network interfaces (WiFi, Ethernet) to find an
-     * active IPv4 address that is NOT localhost (127.0.0.1).
-     */
-    private String getRealIp() {
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface iface = interfaces.nextElement();
-                // Skip loopback (127.0.0.1) or interfaces that are down
-                if (iface.isLoopback() || !iface.isUp()) {
-                    continue;
-                }
-
-                Enumeration<InetAddress> addresses = iface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
-                    // We check for Inet4Address to ensure we get an IPv4 (e.g., 192.168.1.5)
-                    // and not a long IPv6 address.
-                    if (addr instanceof Inet4Address) {
-                        return addr.getHostAddress();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // Fallback: if no network is found, return localhost
-        return "127.0.0.1";
     }
 
     @Override

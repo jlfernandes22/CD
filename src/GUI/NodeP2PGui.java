@@ -496,7 +496,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER)
-        btConnectActionPerformed(null);
+            btConnectActionPerformed(null);
     }//GEN-LAST:event_txtNodeAddressKeyPressed
 
     private void txtNodeAddressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNodeAddressActionPerformed
@@ -1246,7 +1246,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     public void onNonceFound(int nonce) {
         SwingUtilities.invokeLater(() -> {
             imgWinner.setVisible(true);
-            try {            
+            try {
                 myremoteObject.stopMining(nonce);
             } catch (RemoteException ex) {
                 System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
