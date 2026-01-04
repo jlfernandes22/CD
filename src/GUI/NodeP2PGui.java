@@ -500,8 +500,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         return txtWalletTransactions1;
     }
 
-    public void setTxtWalletTransactions1(list<WalletTransaction> transacao) {
-        this.txtWalletTransactions1.setText(transacao.To);
+    public void setTxtWalletTransactions1(List<WalletTransaction> transacao) {
+        this.txtWalletTransactions1.setText(transacao.toString());
     }
 
     /**
