@@ -549,43 +549,49 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         // 3. Obter o User do Médico para assinar
         User userAtual = User.login(nomeUser);
-
-        // 4. Verificar e Carregar Chave Privada
-        if (userAtual.getPrivateKey() == null) {
-            String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
-            
-            if (pass == null) return; // Utilizador cancelou
-
-            // RECARREGA o objeto com a password (desencripta a privada)
-            userAtual = User.login(nomeUser, pass); 
-        }
-
-        // 5. ASSINAR (Agora o userAtual já tem a privada)
-        PrivateKey privKey = userAtual.getPrivateKey();
-        if (privKey == null) {
-            throw new Exception("Falha ao carregar chave privada. Password incorreta?");
-        }
         
-        trans.sign(privKey);
+        if (userAtual.isMedico()){
 
-        // 6. SERIALIZAR E ENVIAR
-        // 6. SERIALIZAR E ENVIAR
-        // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
-        byte[] transBytes = utils.Serializer.objectToByteArray(trans); 
-        String transString = Base64.getEncoder().encodeToString(transBytes);
+                // 4. Verificar e Carregar Chave Privada
+                if (userAtual.getPrivateKey() == null) {
+                    String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
 
-        if (myremoteObject != null) {
-            myremoteObject.addTransaction(transString);
-            JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
+                    if (pass == null) return; // Utilizador cancelou
 
-            // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
-            // this.dispose(); 
+                    // RECARREGA o objeto com a password (desencripta a privada)
+                    userAtual = User.login(nomeUser, pass); 
+                }
+
+                // 5. ASSINAR (Agora o userAtual já tem a privada)
+                PrivateKey privKey = userAtual.getPrivateKey();
+                if (privKey == null) {
+                    throw new Exception("Falha ao carregar chave privada. Password incorreta?");
+                }
+
+                trans.sign(privKey);
+
+                // 6. SERIALIZAR E ENVIAR
+                // 6. SERIALIZAR E ENVIAR
+                // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
+                byte[] transBytes = utils.Serializer.objectToByteArray(trans); 
+                String transString = Base64.getEncoder().encodeToString(transBytes);
+
+                if (myremoteObject != null) {
+                    myremoteObject.addTransaction(transString);
+                    JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
+
+                    // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
+                    // this.dispose(); 
+                }       
+        }else{
+           JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
+
         }
+        }catch (Exception ex) {
+                // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
+                JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
+                ex.printStackTrace();
 
-    } catch (Exception ex) {
-        // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
-        JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
-        ex.printStackTrace();
     }
     }//GEN-LAST:event_btAddTransactionActionPerformed
 
@@ -598,6 +604,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             onException(ex, "connect");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
+     
     }//GEN-LAST:event_btConnectActionPerformed
 
     private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
@@ -682,8 +689,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
             // 3. Tratar o resultado
             if (encontrado != null) {
-                // Se encontrou, pode mostrar os dados numa área de texto ou labels
-                // Exemplo: txtAreaResultado.setText(encontrado.toString());
                 JOptionPane.showMessageDialog(this, "Utilizador encontrado!\n" + encontrado.toString());
 
                 // Aqui pode preencher outros campos da sua GUI com os dados de 'encontrado'
@@ -1368,8 +1373,6 @@ public void onTransaction(String transaction) {
     SwingUtilities.invokeLater(() -> {
         try {
             tpMain.setSelectedComponent(pnTransaction);
-            txtLstTransactions.setText("--- Histórico de Receitas ---\n\n");
-
             // Percorre todas as transações armazenadas no nó remoto
             for (String tr : myremoteObject.getTransactions()) {
                 // Decodifica e converte para objeto
