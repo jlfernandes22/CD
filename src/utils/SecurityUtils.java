@@ -512,6 +512,10 @@ public class SecurityUtils {
      * não existir
      */
     public static byte[] sign(byte[] data, PrivateKey key) throws Exception {
+        
+        if (key == null) {
+        throw new Exception("Chave privada não encontrada. Certifique-se que fez login com password.");
+        }
         Signature sign;
         //verifica qual o algoritmo a ser utilizado
         switch (key.getAlgorithm()) {

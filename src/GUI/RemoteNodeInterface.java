@@ -16,6 +16,7 @@
  //////////////////////////////////////////////////////////////////////////////
 package GUI;
 
+import SaudeCerteira.User;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -29,6 +30,8 @@ public interface RemoteNodeInterface extends Remote {
 
     //:::: N E T WO R K  :::::::::::
     public String getAdress() throws RemoteException;
+    // Adicione isto à sua RemoteNodeInterface.java
+    public User findUserRemote(String username, String searchID, int ttl) throws RemoteException;
 
     public void addNode(RemoteNodeInterface node) throws RemoteException;
 

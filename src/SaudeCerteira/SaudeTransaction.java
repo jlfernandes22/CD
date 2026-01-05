@@ -20,6 +20,8 @@ public class SaudeTransaction implements Serializable {
     String medicamento;  // Nome do medicamento
     int quantidade;      // Quantidade a receitar
     
+    
+ 
     // Atributos de segurança
     PublicKey sender;    // Chave pública do médico
     PublicKey receiver;  // Chave pública do paciente
@@ -139,10 +141,13 @@ public class SaudeTransaction implements Serializable {
         return medicamento; 
     }
 
-    @Override
-    public String toString() {
-        return txtSender + " prescreveu " + quantidade + " x " + medicamento + " -> " + txtReceiver;
-    }
+@Override
+public String toString() {
+    return "Médico: (" + txtSender + "); " +
+           "Paciente: (" + txtReceiver + "); " +
+           "medicamento: (" + medicamento + "); " +
+           "quantidade: (" + quantidade + ").";
+}
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     private static final long serialVersionUID = 202510141147L;

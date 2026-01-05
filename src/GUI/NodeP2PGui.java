@@ -17,6 +17,7 @@ package GUI;
 
 import SaudeCerteira.SaudeTransaction;
 import SaudeCerteira.SaudeWallet;
+import SaudeCerteira.User;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -450,11 +451,11 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtLstTransactions.setColumns(20);
         txtLstTransactions.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
         txtLstTransactions.setRows(2);
-        txtLstTransactions.setPreferredSize(new java.awt.Dimension(99, 89));
+        txtLstTransactions.setPreferredSize(new java.awt.Dimension(939, 89));
         txtLstTransactions.setRequestFocusEnabled(false);
         jScrollPane3.setViewportView(txtLstTransactions);
 
-        pnTransaction.add(jScrollPane3, java.awt.BorderLayout.LINE_START);
+        pnTransaction.add(jScrollPane3, java.awt.BorderLayout.LINE_END);
 
         jPanel2.setLayout(new java.awt.BorderLayout());
 
@@ -487,8 +488,11 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         pnTransaction.add(jPanel2, java.awt.BorderLayout.PAGE_START);
 
-        NomeUtente.setFocusable(false);
-        NomeUtente.setPreferredSize(new java.awt.Dimension(200, 23));
+        NomeUtente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                NomeUtenteActionPerformed(evt);
+            }
+        });
         pnTransaction.add(NomeUtente, java.awt.BorderLayout.CENTER);
 
         tpMain.addTab("Receitas Médicas", pnTransaction);
@@ -517,65 +521,72 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     }//GEN-LAST:event_btStartMinigActionPerformed
 
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
-        try {
-            // 1. Get Data
-            String patientName = NomeUtente.getText();
-            
-            // NEW: Get selected medicine from Dropdown
-            String selectedDrug = (String) Medicamentos.getSelectedItem();
-            
-            // Get Quantity (Assuming you have a text field for it, or hardcode 1)
-            // Let's assume you added a jTextFieldQuantity, otherwise use "1"
-          
-            Integer quantidade = 0;
-            
-            try {
-                // If you added a quantity field:
-                quantidade = Integer.parseInt(QuantidadeMed.getText());
-            } catch (NumberFormatException e) {
-                quantidade = 1; // Default
-            }
+       // 1. Get Data
+    String patientName = NomeUtente.getText().trim();
+    String selectedDrug = (String) Medicamentos.getSelectedItem();
+    
+    int quantidade;
+    try {
+        quantidade = Integer.parseInt(QuantidadeMed.getText());
+    } catch (NumberFormatException e) {
+        quantidade = 1; // Default
+    }
 
-            if (patientName.isEmpty() || selectedDrug == null) {
-                JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
-                return;
-            }
+    if (patientName.isEmpty() || selectedDrug == null) {
+        JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
+        return;
+    }
+
+    try {
+        // 2. Criar a Transação
+        // O construtor da SaudeTransaction provavelmente já faz a pesquisa P2P que implementamos
+        SaudeTransaction trans = new SaudeTransaction(
+            nomeUser,     // Médico
+            patientName,  // Paciente
+            quantidade,
+            selectedDrug
+        );
+
+        // 3. Obter o User do Médico para assinar
+        User userAtual = User.login(nomeUser);
+
+        // 4. Verificar e Carregar Chave Privada
+        if (userAtual.getPrivateKey() == null) {
+            String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
             
+            if (pass == null) return; // Utilizador cancelou
 
-            // 2. Create Transaction (Using the NEW Constructor we fixed)
-            SaudeTransaction trans = null;
-            try {
-                 trans = new SaudeTransaction(
-                    nomeUser,     // Médico (Quem envia)
-                    patientName,  // Paciente (Quem recebe)
-                    quantidade,   // Quantidade
-                    selectedDrug  // Medicamento
-                );
-            } catch (Exception e) {
-                // Se falhar aqui, é quase garantido que o Paciente não existe
-                JOptionPane.showMessageDialog(this, "Erro: O Paciente '" + patientName + "' não foi encontrado no sistema.\nVerifique o nome.");
-                return; // Pára tudo
-            }
-
-            // 3. Sign Transaction
-            PrivateKey privKey = SecurityUtils.loadPrivateKey(nomeUser);
-            trans.sign(privKey);
-
-            // 4. Send
-            byte[] transBytes = Serializer.objectToByteArray(trans);
-            String transString = Base64.getEncoder().encodeToString(transBytes);
-            
-            if (myremoteObject != null) {
-                myremoteObject.addTransaction(transString);
-                JOptionPane.showMessageDialog(this, "Receita de " + selectedDrug + " enviada!");
-                this.dispose();
-            }
-        } catch (RemoteException ex) {
-            onException(ex, "transactions");
-            Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            // RECARREGA o objeto com a password (desencripta a privada)
+            userAtual = User.login(nomeUser, pass); 
         }
+
+        // 5. ASSINAR (Agora o userAtual já tem a privada)
+        PrivateKey privKey = userAtual.getPrivateKey();
+        if (privKey == null) {
+            throw new Exception("Falha ao carregar chave privada. Password incorreta?");
+        }
+        
+        trans.sign(privKey);
+
+        // 6. SERIALIZAR E ENVIAR
+        // 6. SERIALIZAR E ENVIAR
+        // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
+        byte[] transBytes = utils.Serializer.objectToByteArray(trans); 
+        String transString = Base64.getEncoder().encodeToString(transBytes);
+
+        if (myremoteObject != null) {
+            myremoteObject.addTransaction(transString);
+            JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
+
+            // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
+            // this.dispose(); 
+        }
+
+    } catch (Exception ex) {
+        // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
+        JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
+        ex.printStackTrace();
+    }
     }//GEN-LAST:event_btAddTransactionActionPerformed
 
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
@@ -653,6 +664,38 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private void MedicamentosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MedicamentosActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_MedicamentosActionPerformed
+
+    private void NomeUtenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NomeUtenteActionPerformed
+
+          try {
+            // 1. Obter o nome do utilizador da TextBox
+            String nomeProcurar = NomeUtente.getText().trim();
+
+            if (nomeProcurar.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Por favor, insira um nome de utilizador.");
+                return;
+            }
+
+            // 2. Chamar o método de pesquisa (que faz a busca local e P2P)
+            // Nota: Assumindo que o seu objeto remoto está acessível na GUI
+            User encontrado = myremoteObject.searchUser(nomeProcurar);
+
+            // 3. Tratar o resultado
+            if (encontrado != null) {
+                // Se encontrou, pode mostrar os dados numa área de texto ou labels
+                // Exemplo: txtAreaResultado.setText(encontrado.toString());
+                JOptionPane.showMessageDialog(this, "Utilizador encontrado!\n" + encontrado.toString());
+
+                // Aqui pode preencher outros campos da sua GUI com os dados de 'encontrado'
+            } else {
+                JOptionPane.showMessageDialog(this, "Utilizador não encontrado na rede.");
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro na pesquisa: " + ex.getMessage());
+            Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_NomeUtenteActionPerformed
 
     public JTextField getTxtBalance1() {
         return txtBalance1;
@@ -1320,23 +1363,27 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }
 
     }
+@Override
+public void onTransaction(String transaction) {
+    SwingUtilities.invokeLater(() -> {
+        try {
+            tpMain.setSelectedComponent(pnTransaction);
+            txtLstTransactions.setText("--- Histórico de Receitas ---\n\n");
 
-    @Override
-    public void onTransaction(String transaction) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                tpMain.setSelectedComponent(pnTransaction);
-                txtLstTransactions.setText("Received : " + transaction + "\nTransactions:\n");
-                for (String tr : myremoteObject.getTransactions()) {
-                    txtLstTransactions.append(tr + "\n");
-
-                }
-            } catch (RemoteException ex) {
-                onException(ex, "On Transaction");
-                Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
+            // Percorre todas as transações armazenadas no nó remoto
+            for (String tr : myremoteObject.getTransactions()) {
+                // Decodifica e converte para objeto
+                byte[] data = Base64.getDecoder().decode(tr);
+                SaudeTransaction obj = (SaudeTransaction) utils.Serializer.byteArrayToObject(data);
+                
+                // Adiciona ao TextArea usando o novo formato do toString()
+                txtLstTransactions.append(obj.toString() + "\n------------------------------------------------\n");
             }
-        });
-    }
+        } catch (Exception ex) {
+            txtLstTransactions.append("Erro ao processar transação: " + ex.getMessage() + "\n");
+        }
+    });
+}
 
     @Override
     public void onStartMining(String message, int dificulty) {

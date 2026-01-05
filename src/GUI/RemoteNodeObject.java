@@ -16,6 +16,8 @@
  //////////////////////////////////////////////////////////////////////////////
 package GUI;
 
+import SaudeCerteira.User;
+import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +44,7 @@ import utils.RMI;
 public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeInterface {
 
     public static String REMOTE_OBJECT_NAME = "remoteNode";
+    Set<String> activeSearches = new CopyOnWriteArraySet<>();
 
     String address;
     Set<RemoteNodeInterface> network;
@@ -113,6 +117,64 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         }
         return backupIp;
     }
+ 
+public User searchUser(String username) throws RemoteException {
+    // 1. Tentar localmente primeiro
+    User local = loadUserFromDisk(username);
+    if (local != null) {
+        return local;
+    }
+
+    // 2. Se não encontrou, inicia propagação P2P para os vizinhos
+    String searchID = UUID.randomUUID().toString();
+    return findUserRemote(username, searchID, 3); // TTL de 3 saltos
+}
+
+@Override
+public User findUserRemote(String username, String searchID, int ttl) throws RemoteException {
+    // Proteção contra loops e limite de profundidade (TTL)
+    if (ttl <= 0 || activeSearches.contains(searchID)) {
+        return null;
+    }
+
+    // Marcar esta busca como processada por este nó
+    activeSearches.add(searchID);
+
+    // 1. Procurar no meu disco local
+    User local = loadUserFromDisk(username);
+    if (local != null) {
+        return local;
+    }
+
+    // 2. Se eu não tenho, pergunto a quem está na minha rede (P2P Propagation)
+    for (RemoteNodeInterface node : network) {
+        try {
+            User found = node.findUserRemote(username, searchID, ttl - 1);
+            if (found != null) {
+                return found; // Retorna o utilizador encontrado na rede
+            }
+        } catch (RemoteException e) {
+            // Se um nó estiver offline, continuamos a pesquisar nos outros
+        }
+    }
+
+    return null;
+}
+
+private User loadUserFromDisk(String username) {
+    try {
+        // O caminho completo seria data_user/username.pub
+        File pubFile = new File(User.FILE_PATH + username + ".pub");
+        
+        if (pubFile.exists()) {
+            // Utilizamos o seu método login(name) que carrega a chave pública do disco
+            return User.login(username);
+        }
+    } catch (Exception e) {
+        System.err.println("Erro ao carregar utilizador local: " + e.getMessage());
+    }
+    return null;
+}
 
     @Override
     public String getAdress() throws RemoteException {
