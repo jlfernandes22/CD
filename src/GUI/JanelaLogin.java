@@ -130,8 +130,9 @@ public class JanelaLogin extends javax.swing.JFrame {
             NodeP2PGui janelaPrincipal = new NodeP2PGui();
 
             janelaPrincipal.nomeUser = name;
-            //SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            janelaPrincipal.setLocationRelativeTo(null);
+            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
+            //t.restartSaudeCerteira();
+            //janelaPrincipal.setLocationRelativeTo(null);
             janelaPrincipal.setVisible(true);
 
           

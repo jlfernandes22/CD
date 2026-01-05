@@ -245,7 +245,7 @@ public class SaudeWallet implements Serializable {
      * @return blockchain com o bloco genesis
      * @throws Exception 
      */
-    public static BlockChain restartTemplarCoin() throws Exception {
+    public static BlockChain restartSaudeCerteira() throws Exception {
         //apagar as pastas com os ficheiros
         //####################################
         //apagar as carteiros

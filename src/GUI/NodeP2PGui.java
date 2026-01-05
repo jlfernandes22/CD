@@ -46,7 +46,7 @@ import utils.Utils;
 public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, MinerListener {
 
     RemoteNodeObject myremoteObject;
-    String nomeUser = "master123";
+    String nomeUser = "Master";
 
     /**
      * Creates new form MessengerGUI
@@ -570,7 +570,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
                 trans.sign(privKey);
 
-                // 6. SERIALIZAR E ENVIAR
+               
                 // 6. SERIALIZAR E ENVIAR
                 // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
                 byte[] transBytes = utils.Serializer.objectToByteArray(trans); 
@@ -584,6 +584,8 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                     // this.dispose(); 
                 }       
         }else{
+            System.out.println(userAtual.getUserName());
+           System.out.println(userAtual.isMedico());
            JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
 
         }
