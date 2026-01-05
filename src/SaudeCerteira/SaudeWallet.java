@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import utils.FolderUtils;
 
@@ -41,7 +44,7 @@ public class SaudeWallet implements Serializable {
 
     String user; //nome do utilizador
     List<WalletTransaction> transactions; //listas das transações
-    double amount; // saldo (evita estar a processar as transações)
+    Map<String, Integer> drugInventory; // saldo (evita estar a processar as transações)
 
     /**
      * construtor privado 
@@ -50,7 +53,7 @@ public class SaudeWallet implements Serializable {
     private SaudeWallet(String user) {
         this.user = user;
         this.transactions = new ArrayList<>();
-        this.amount = 0.0;
+        this.drugInventory = new HashMap<>();
     }
     /**
      * Cria uma nova carteira e as respetivas credenciais (public, privada e AES)
@@ -125,13 +128,30 @@ public class SaudeWallet implements Serializable {
      * @throws Exception 
      */
     public void add(WalletTransaction trans) throws Exception {
+        // 1. Get Transaction Details
+        // We assume 'description' is the Drug Name and 'value' is the Quantity
+        String drugName = trans.getTransaction().getDescription(); 
+        int quantity = (int) trans.getTransaction().getValue();
+
+        // 2. Logic for Receiver (GAINS Drugs)
         if (trans.getTransaction().getTxtReceiver().equalsIgnoreCase(this.user)) {
-            amount += trans.getTransaction().getValue();
-        } else if (trans.getTransaction().getTxtSender().equalsIgnoreCase(this.user)) {
-            amount -= trans.getTransaction().getValue();
-        } else {
-            throw new Exception("Wrong wallet");
-        }
+            // Add quantity to current stock
+            int currentStock = drugInventory.getOrDefault(drugName, 0);
+            drugInventory.put(drugName, currentStock + quantity);
+        } 
+        // 3. Logic for Sender (LOSES Drugs)
+        else if (trans.getTransaction().getTxtSender().equalsIgnoreCase(this.user)) {
+            // Subtract quantity from current stock
+            int currentStock = drugInventory.getOrDefault(drugName, 0);
+            int newStock = currentStock - quantity;
+            
+            // Prevent negative stock (optional safety check, though validation should happen before mining)
+            if (newStock < 0) newStock = 0; 
+            
+            drugInventory.put(drugName, newStock);
+        } 
+        
+        // 4. Save Transaction History
         transactions.add(trans);
         save();
     }
@@ -177,13 +197,26 @@ public class SaudeWallet implements Serializable {
         }
 
     }
+    
+    
 
     @Override
     public String toString() {
         StringBuilder txt = new StringBuilder(this.user);
-        txt.append("\nAmount : " + this.amount);
-        txt.append("\nTRANSACTIONS\n");
-
+        
+        // Display Inventory instead of Balance
+        txt.append("\n=== INVENTÁRIO DE MEDICAMENTOS ===\n");
+        if(drugInventory.isEmpty()){
+             txt.append(" (Vazio)\n");
+        } else {
+            for (Map.Entry<String, Integer> entry : drugInventory.entrySet()) {
+                // Example: Paracetamol : 50
+                txt.append(" - ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+            }
+        }
+        
+        txt.append("==================================\n");
+        txt.append("Histórico de Transações:\n");
         for (WalletTransaction transaction : transactions) {
             txt.append(transaction.toString()).append("\n");
         }
@@ -198,8 +231,12 @@ public class SaudeWallet implements Serializable {
         return transactions;
     }
 
-    public double getAmount() {
-        return amount;
+   public Map<String, Integer> getDrugInventory() {
+        // Se por acaso estiver null (de wallets antigas), cria um novo para não dar erro
+        if (drugInventory == null) {
+            drugInventory = new HashMap<>();
+        }
+        return drugInventory;
     }
 
 
@@ -239,6 +276,12 @@ public class SaudeWallet implements Serializable {
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     private static final long serialVersionUID = 202510141301L;
     //:::::::::::::::::::::::::::  Copyright(c) M@nso  2025  :::::::::::::::::::
+
+    public PrivateKey getPrivateKey(String nome) throws Exception {
+        User user = User.login(nome);
+        return user.getPrivateKey();
+    }
+
 
 
 ///////////////////////////////////////////////////////////////////////////

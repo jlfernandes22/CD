@@ -15,23 +15,28 @@
  //////////////////////////////////////////////////////////////////////////////
 package GUI;
 
+import SaudeCerteira.SaudeTransaction;
 import SaudeCerteira.SaudeWallet;
-import SaudeCerteira.User;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
+import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import utils.GuiUtils;
 import utils.RMI;
+import utils.SecurityUtils;
+import utils.Serializer;
+import utils.Utils;
 
 /**
  *
@@ -40,6 +45,7 @@ import utils.RMI;
 public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, MinerListener {
 
     RemoteNodeObject myremoteObject;
+    String nomeUser = "master123";
 
     /**
      * Creates new form MessengerGUI
@@ -66,9 +72,29 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtServerListeningPort.setText("1000" + r.nextInt(10));
         btStartServerActionPerformed(null);
         btConnectActionPerformed(null);
-        btAddTransactionActionPerformed(null);
+        //btAddTransactionActionPerformed(null);
+        loadMedicinesToGUI();
     }
 
+    private void loadMedicinesToGUI() {
+        // 1. Define the path to your CSV file
+        // Adjust "src/multimedia/..." if your folder structure is different
+        String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
+        
+        // 2. Get the list of names
+        List<String> medicines = Utils.getMedicineNames(path);
+        
+        // 3. Convert to Array for the ComboBox
+        String[] medArray = medicines.toArray(new String[0]);
+        
+        // 4. Set the model to the ComboBox
+        // Assuming you named your component 'cmbMedicamentos' in the GUI Builder
+        // If you didn't create it yet, I check for null to avoid crash
+        if (Medicamentos != null) {
+            Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -103,12 +129,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         jPanel5 = new javax.swing.JPanel();
         txtNodeAddress = new javax.swing.JTextField();
         btConnect = new javax.swing.JButton();
-        pnTransaction = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        txtLstTransactions = new javax.swing.JTextArea();
-        jPanel2 = new javax.swing.JPanel();
-        txtTransaction = new javax.swing.JTextField();
-        btAddTransaction = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         spZeros = new javax.swing.JSpinner();
         btStartMinig = new javax.swing.JButton();
@@ -123,6 +143,14 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         jButton2 = new javax.swing.JButton();
         jScrollPane5 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+        pnTransaction = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        txtLstTransactions = new javax.swing.JTextArea();
+        jPanel2 = new javax.swing.JPanel();
+        btAddTransaction = new javax.swing.JButton();
+        Medicamentos = new javax.swing.JComboBox<>();
+        QuantidadeMed = new javax.swing.JTextField();
+        NomeUtente = new javax.swing.JTextField();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -292,42 +320,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         tpMain.addTab("P2pNetwork", pnNetwork);
 
-        pnTransaction.setLayout(new java.awt.BorderLayout());
-
-        txtLstTransactions.setColumns(20);
-        txtLstTransactions.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
-        txtLstTransactions.setRows(5);
-        jScrollPane3.setViewportView(txtLstTransactions);
-
-        pnTransaction.add(jScrollPane3, java.awt.BorderLayout.CENTER);
-
-        jPanel2.setLayout(new java.awt.BorderLayout());
-
-        txtTransaction.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
-        txtTransaction.setText("...");
-        txtTransaction.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtTransactionActionPerformed(evt);
-            }
-        });
-        jPanel2.add(txtTransaction, java.awt.BorderLayout.CENTER);
-
-        btAddTransaction.setIcon(new javax.swing.ImageIcon(getClass().getResource("/multimedia/transaction.png"))); // NOI18N
-        btAddTransaction.setText("Nova Receita");
-        btAddTransaction.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btAddTransaction.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        btAddTransaction.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btAddTransaction.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btAddTransactionActionPerformed(evt);
-            }
-        });
-        jPanel2.add(btAddTransaction, java.awt.BorderLayout.WEST);
-
-        pnTransaction.add(jPanel2, java.awt.BorderLayout.PAGE_START);
-
-        tpMain.addTab("Receitas Médicas", pnTransaction);
-
         spZeros.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         spZeros.setModel(new javax.swing.SpinnerNumberModel(3, 2, null, 1));
         spZeros.setBorder(javax.swing.BorderFactory.createTitledBorder("Dificulty"));
@@ -373,7 +365,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(imgWinner)))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(781, Short.MAX_VALUE))
+                .addContainerGap(724, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -428,7 +420,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 1108, Short.MAX_VALUE)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 1050, Short.MAX_VALUE)
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addComponent(jButton2)
                         .addGap(55, 55, 55)
@@ -451,6 +443,48 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         );
 
         tpMain.addTab("receitas", jPanel8);
+
+        pnTransaction.setLayout(new java.awt.BorderLayout());
+
+        txtLstTransactions.setColumns(20);
+        txtLstTransactions.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
+        txtLstTransactions.setRows(5);
+        jScrollPane3.setViewportView(txtLstTransactions);
+
+        pnTransaction.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
+
+        btAddTransaction.setIcon(new javax.swing.ImageIcon(getClass().getResource("/multimedia/transaction.png"))); // NOI18N
+        btAddTransaction.setText("Nova Receita");
+        btAddTransaction.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btAddTransaction.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        btAddTransaction.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btAddTransaction.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btAddTransactionActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btAddTransaction, java.awt.BorderLayout.WEST);
+
+        Medicamentos.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        Medicamentos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MedicamentosActionPerformed(evt);
+            }
+        });
+        jPanel2.add(Medicamentos, java.awt.BorderLayout.CENTER);
+
+        QuantidadeMed.setMinimumSize(new java.awt.Dimension(90, 20));
+        QuantidadeMed.setPreferredSize(new java.awt.Dimension(90, 20));
+        jPanel2.add(QuantidadeMed, java.awt.BorderLayout.LINE_END);
+
+        pnTransaction.add(jPanel2, java.awt.BorderLayout.PAGE_START);
+
+        NomeUtente.setText("Para quem enviar");
+        pnTransaction.add(NomeUtente, java.awt.BorderLayout.LINE_END);
+
+        tpMain.addTab("Receitas Médicas", pnTransaction);
 
         getContentPane().add(tpMain, java.awt.BorderLayout.PAGE_START);
 
@@ -477,16 +511,65 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
         try {
-            myremoteObject.addTransaction(txtTransaction.getText());
+            // 1. Get Data
+            String patientName = NomeUtente.getText();
+            
+            // NEW: Get selected medicine from Dropdown
+            String selectedDrug = (String) Medicamentos.getSelectedItem();
+            
+            // Get Quantity (Assuming you have a text field for it, or hardcode 1)
+            // Let's assume you added a jTextFieldQuantity, otherwise use "1"
+          
+            Integer quantidade = 0;
+            
+            try {
+                // If you added a quantity field:
+                quantidade = Integer.parseInt(QuantidadeMed.getText());
+            } catch (NumberFormatException e) {
+                quantidade = 1; // Default
+            }
+
+            if (patientName.isEmpty() || selectedDrug == null) {
+                JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
+                return;
+            }
+            
+
+            // 2. Create Transaction (Using the NEW Constructor we fixed)
+            SaudeTransaction trans = null;
+            try {
+                 trans = new SaudeTransaction(
+                    nomeUser,     // Médico (Quem envia)
+                    patientName,  // Paciente (Quem recebe)
+                    quantidade,   // Quantidade
+                    selectedDrug  // Medicamento
+                );
+            } catch (Exception e) {
+                // Se falhar aqui, é quase garantido que o Paciente não existe
+                JOptionPane.showMessageDialog(this, "Erro: O Paciente '" + patientName + "' não foi encontrado no sistema.\nVerifique o nome.");
+                return; // Pára tudo
+            }
+
+            // 3. Sign Transaction
+            PrivateKey privKey = SecurityUtils.loadPrivateKey(nomeUser);
+            trans.sign(privKey);
+
+            // 4. Send
+            byte[] transBytes = Serializer.objectToByteArray(trans);
+            String transString = Base64.getEncoder().encodeToString(transBytes);
+            
+            if (myremoteObject != null) {
+                myremoteObject.addTransaction(transString);
+                JOptionPane.showMessageDialog(this, "Receita de " + selectedDrug + " enviada!");
+                this.dispose();
+            }
         } catch (RemoteException ex) {
             onException(ex, "transactions");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_btAddTransactionActionPerformed
-
-    private void txtTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTransactionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtTransactionActionPerformed
 
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
         try {
@@ -559,6 +642,10 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private void txtServerListeningPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtServerListeningPortActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtServerListeningPortActionPerformed
+
+    private void MedicamentosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MedicamentosActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_MedicamentosActionPerformed
 
     public JTextField getTxtBalance1() {
         return txtBalance1;
@@ -1147,6 +1234,9 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> Medicamentos;
+    private javax.swing.JTextField NomeUtente;
+    private javax.swing.JTextField QuantidadeMed;
     private javax.swing.JButton btAddTransaction;
     private javax.swing.JButton btConnect;
     private javax.swing.JButton btStartMinig;
@@ -1187,7 +1277,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     private javax.swing.JTextField txtServerListeningObjectName;
     private javax.swing.JTextField txtServerListeningPort;
     private javax.swing.JTextPane txtServerLog;
-    private javax.swing.JTextField txtTransaction;
     private javax.swing.JTextField txtWalletAESKey1;
     private javax.swing.JTextField txtWalletPrivateKey1;
     private javax.swing.JTextField txtWalletPublicKey1;
