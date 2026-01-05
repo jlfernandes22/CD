@@ -143,10 +143,12 @@ public class SaudeTransaction implements Serializable {
 
 @Override
 public String toString() {
-    return "Médico: (" + txtSender + "); " +
-           "Paciente: (" + txtReceiver + "); " +
-           "medicamento: (" + medicamento + "); " +
-           "quantidade: (" + quantidade + ").";
+    StringBuilder txt = new StringBuilder();
+    txt.append("/////GUIA DE TRATAMENTO AO UTENTE/////\n")
+            .append("Médico: "+ txtSender+"\n")
+            .append("Paciente: "+txtReceiver+"\n")
+            .append("Medicamentos: "+quantidade+" "+medicamento+"\n");
+    return txt.toString();
 }
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
