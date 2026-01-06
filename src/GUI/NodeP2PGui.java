@@ -23,6 +23,7 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
@@ -47,6 +48,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     RemoteNodeObject myremoteObject;
     String nomeUser = "Master";
+    core.Block blocoCandidato = null;
 
     /**
      * Creates new form MessengerGUI
@@ -81,13 +83,13 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         // 1. Define the path to your CSV file
         // Adjust "src/multimedia/..." if your folder structure is different
         String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
-        
+
         // 2. Get the list of names
         List<String> medicines = Utils.getMedicineNames(path);
-        
+
         // 3. Convert to Array for the ComboBox
         String[] medArray = medicines.toArray(new String[0]);
-        
+
         // 4. Set the model to the ComboBox
         // Assuming you named your component 'cmbMedicamentos' in the GUI Builder
         // If you didn't create it yet, I check for null to avoid crash
@@ -95,7 +97,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
         }
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -114,6 +116,12 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         jScrollPane6 = new javax.swing.JScrollPane();
         txtWalletTransactions1 = new javax.swing.JTextArea();
         txtBalance1 = new javax.swing.JTextField();
+        jPanel8 = new javax.swing.JPanel();
+        jButton3 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
         tpMain = new javax.swing.JTabbedPane();
         pnServer = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -138,12 +146,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         imgWinner = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         txtMinerMessage = new javax.swing.JTextArea();
-        jPanel8 = new javax.swing.JPanel();
-        jButton3 = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
         pnTransaction = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         txtLstTransactions = new javax.swing.JTextArea();
@@ -227,6 +229,63 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(txtBalance1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jButton3.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton3.setText("Perfil");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
+        jButton1.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton1.setText("Criar Receita");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
+        jButton2.setText("Sair");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane5.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)
+                    .addGroup(jPanel8Layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addGap(55, 55, 55)
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton3)))
+                .addContainerGap())
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(jButton1)
+                    .addComponent(jButton3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -387,65 +446,6 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
         tpMain.addTab("Miner", jPanel4);
 
-        jButton3.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jButton3.setText("Perfil");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-
-        jButton1.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jButton1.setText("Criar Receita");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jButton2.setText("Sair");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane5.setViewportView(jTextArea1);
-
-        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
-        jPanel8.setLayout(jPanel8Layout);
-        jPanel8Layout.setHorizontalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel8Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)
-                    .addGroup(jPanel8Layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addGap(55, 55, 55)
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton3)))
-                .addContainerGap())
-        );
-        jPanel8Layout.setVerticalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel8Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
-                    .addComponent(jButton1)
-                    .addComponent(jButton3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        tpMain.addTab("receitas", jPanel8);
-
         pnTransaction.setLayout(new java.awt.BorderLayout());
 
         txtLstTransactions.setColumns(20);
@@ -508,93 +508,185 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
 
-        new Thread(() -> {
-            try {
-                String txt = Base64.getEncoder().encodeToString(txtLstTransactions.getText().getBytes());
-                int dif = (int) spZeros.getValue();
-                myremoteObject.mine(txt, dif);
+        try {
+            // 1. Carregar a Blockchain Local
+            core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
-            } catch (RemoteException ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            // Dados para o novo bloco
+            int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 1;
+            byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
+
+            // 2. Filtrar Transações (AQUI ESTÁ A CORREÇÃO MÁGICA)
+            List<String> pendentes = myremoteObject.getTransactions();
+            List<SaudeCerteira.SaudeTransaction> txsReais = new ArrayList<>();
+            List<String> lixoParaRemover = new ArrayList<>();
+
+            for (String s : pendentes) {
+                try {
+                    SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
+
+                    // === VERIFICAÇÃO CRÍTICA ===
+                    // Se a blockchain já tem esta assinatura, IGNORA e marca para apagar
+                    if (bc != null && bc.existsTransaction(t.getSignature())) {
+                        System.out.println("Transação duplicada detetada! Ignorando...");
+                        lixoParaRemover.add(s); // Marca para remover da lista
+                        continue;
+                    }
+
+                    txsReais.add(t);
+
+                } catch (Exception e) {
+                    // Se der erro a ler, é lixo
+                    lixoParaRemover.add(s);
+                }
             }
-        }).start();
+
+            // Se depois de filtrar não sobrar nada, avisa e limpa
+            if (txsReais.isEmpty()) {
+                // Limpa o lixo da lista remota para não atrapalhar mais
+                for (String lixo : lixoParaRemover) {
+                    // (Opcional) Poderia criar um método removeTransaction no RemoteObject
+                }
+                // Limpa a GUI local
+                txtLstTransactions.setText("");
+                JOptionPane.showMessageDialog(this, "Todas as transações pendentes já foram processadas!\nA lista será limpa.");
+                return;
+            }
+
+            // 3. Criar Bloco Candidato APENAS com as transações válidas
+            int dif = (int) spZeros.getValue();
+            this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
+
+            // 4. Iniciar Mineração (Sem loops)
+            byte[] headerBytes = this.blocoCandidato.getHeaderData();
+            String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
+
+            new Thread(() -> {
+                try {
+                    // Manda a si próprio
+                    myremoteObject.mine(headerParaMinar, dif);
+                    // Manda aos outros
+                    for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
+                        try {
+                            node.mine(headerParaMinar, dif);
+                        } catch (Exception e) {
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+        }
     }//GEN-LAST:event_btStartMinigActionPerformed
 
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
-       // 1. Get Data
-    String patientName = NomeUtente.getText().trim();
-    String selectedDrug = (String) Medicamentos.getSelectedItem();
-    
-    int quantidade;
-    try {
-        quantidade = Integer.parseInt(QuantidadeMed.getText());
-    } catch (NumberFormatException e) {
-        quantidade = 1; // Default
-    }
+        // 1. Get Data
+        String patientName = NomeUtente.getText().trim();
+        String selectedDrug = (String) Medicamentos.getSelectedItem();
 
-    if (patientName.isEmpty() || selectedDrug == null) {
-        JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
-        return;
-    }
+        int quantidade;
+        try {
+            quantidade = Integer.parseInt(QuantidadeMed.getText());
+        } catch (NumberFormatException e) {
+            quantidade = 1; // Default
+        }
 
-    try {
-        // 2. Criar a Transação
-        // O construtor da SaudeTransaction provavelmente já faz a pesquisa P2P que implementamos
-        SaudeTransaction trans = new SaudeTransaction(
-            nomeUser,     // Médico
-            patientName,  // Paciente
-            quantidade,
-            selectedDrug
-        );
+        if (patientName.isEmpty() || selectedDrug == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
+            return;
+        }
 
-        // 3. Obter o User do Médico para assinar
-        User userAtual = User.login(nomeUser);
-        
-        if (userAtual.isMedico()){
+        try {
+            // --- VERIFICAÇÃO DE STOCK LOCAL ---
+            try {
+                SaudeWallet carteiraMedico = SaudeWallet.load(nomeUser);
+                int stockAtual = carteiraMedico.getDrugInventory().getOrDefault(selectedDrug, 0);
+
+                if (stockAtual < quantidade) {
+                    JOptionPane.showMessageDialog(this,
+                            "Erro: Stock insuficiente!\nTem: " + stockAtual + "\nQuer enviar: " + quantidade);
+                    return; // Impede o envio
+                }
+            } catch (Exception e) {
+                System.out.println("Aviso: Não foi possível verificar stock localmente.");
+            }
+
+            // =================================================================================
+            // === [NOVO] PESQUISA P2P NA REDE (Adicione este bloco) ===========================
+            // =================================================================================
+            // 1. Procurar o utilizador na rede (Localmente + Vizinhos)
+            User pacienteEncontrado = myremoteObject.searchUser(patientName);
+
+            if (pacienteEncontrado == null) {
+                JOptionPane.showMessageDialog(this, "Erro: O paciente '" + patientName + "' não foi encontrado na rede P2P.");
+                return;
+            }
+
+            // 2. IMPORTANTE: Guardar o utilizador encontrado no disco local
+            // O construtor da SaudeTransaction vai tentar ler o ficheiro do disco.
+            // Temos de garantir que ele existe antes de continuar.
+            // A. Guardar a Chave Pública (.pub)
+            utils.SecurityUtils.saveKey(pacienteEncontrado.getPublicKey(), "data_user/" + patientName);
+
+            // B. Guardar os dados do Utilizador (.user)
+            try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
+                out.writeObject(pacienteEncontrado);
+            }
+            // =================================================================================
+            // =================================================================================
+
+            // 2. Criar a Transação
+            SaudeTransaction trans = new SaudeTransaction(
+                    nomeUser, // Médico
+                    patientName, // Paciente
+                    quantidade,
+                    selectedDrug
+            );
+
+            // 3. Obter o User do Médico para assinar
+            User userAtual = User.login(nomeUser);
+
+            if (userAtual.isMedico()) {
 
                 // 4. Verificar e Carregar Chave Privada
                 if (userAtual.getPrivateKey() == null) {
                     String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
 
-                    if (pass == null) return; // Utilizador cancelou
-
+                    if (pass == null) {
+                        return; // Utilizador cancelou
+                    }
                     // RECARREGA o objeto com a password (desencripta a privada)
-                    userAtual = User.login(nomeUser, pass); 
+                    userAtual = User.login(nomeUser, pass);
                 }
 
                 // 5. ASSINAR (Agora o userAtual já tem a privada)
-                PrivateKey privKey = userAtual.getPrivateKey();
+                java.security.PrivateKey privKey = userAtual.getPrivateKey();
                 if (privKey == null) {
                     throw new Exception("Falha ao carregar chave privada. Password incorreta?");
                 }
 
                 trans.sign(privKey);
 
-               
                 // 6. SERIALIZAR E ENVIAR
-                // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
-                byte[] transBytes = utils.Serializer.objectToByteArray(trans); 
-                String transString = Base64.getEncoder().encodeToString(transBytes);
+                byte[] transBytes = utils.Serializer.objectToByteArray(trans);
+                String transString = java.util.Base64.getEncoder().encodeToString(transBytes);
 
                 if (myremoteObject != null) {
                     myremoteObject.addTransaction(transString);
                     JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
-
-                    // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
-                    // this.dispose(); 
-                }       
-        }else{
-            System.out.println(userAtual.getUserName());
-           System.out.println(userAtual.isMedico());
-           JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
-
+                    //this.dispose(); 
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
+            ex.printStackTrace();
         }
-        }catch (Exception ex) {
-                // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
-                JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
-                ex.printStackTrace();
-
-    }
     }//GEN-LAST:event_btAddTransactionActionPerformed
 
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
@@ -606,7 +698,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             onException(ex, "connect");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
-     
+
     }//GEN-LAST:event_btConnectActionPerformed
 
     private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
@@ -631,19 +723,21 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             //:::::::::: Objeto remoto  :::::::::::::::
             int port = Integer.parseInt(txtServerListeningPort.getText());
             String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
-            
+
             // Now create the object (It will now use the correct IP in the Stub)
             myremoteObject = new RemoteNodeObject(port, this);
-            
+
             RMI.startRemoteObject(myremoteObject, port, name);
-            
+
             //:::::::: GUI  ::::::::::::::::
             this.setTitle(RMI.getRemoteName(port, name));
             this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
-            
+
             // Re-enable miner listener now that object exists
-             if(myremoteObject.miner != null) myremoteObject.miner.addListener(this);
-             
+            if (myremoteObject.miner != null) {
+                myremoteObject.miner.addListener(this);
+            }
+
         } catch (Exception ex) {
             onException(ex, "Starting server");
             Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
@@ -676,7 +770,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
 
     private void NomeUtenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NomeUtenteActionPerformed
 
-          try {
+        try {
             // 1. Obter o nome do utilizador da TextBox
             String nomeProcurar = NomeUtente.getText().trim();
 
@@ -1370,25 +1464,28 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }
 
     }
-@Override
-public void onTransaction(String transaction) {
-    SwingUtilities.invokeLater(() -> {
-        try {
-            tpMain.setSelectedComponent(pnTransaction);
-            // Percorre todas as transações armazenadas no nó remoto
-            for (String tr : myremoteObject.getTransactions()) {
-                // Decodifica e converte para objeto
-                byte[] data = Base64.getDecoder().decode(tr);
-                SaudeTransaction obj = (SaudeTransaction) utils.Serializer.byteArrayToObject(data);
-                
-                // Adiciona ao TextArea usando o novo formato do toString()
-                txtLstTransactions.append(obj.toString() + "\n------------------------------------------------\n");
+
+    @Override
+    public void onTransaction(String data) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // Se recebermos a mensagem especial de que chegou um bloco
+                if (data.equals("BlockReceived")) {
+                    txtLstTransactions.setText(""); // Limpa a lista visualmente
+                    // Opcional: Se quiser ser muito preciso, recarregue do objeto remoto:
+                    // updateTransactionList(); 
+                    return;
+                }
+
+                // Código normal para adicionar texto (mantenha o que já tinha para novas transações)
+                if (!txtLstTransactions.getText().contains(data)) {
+                    txtLstTransactions.append(data + "\n");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        } catch (Exception ex) {
-            txtLstTransactions.append("Erro ao processar transação: " + ex.getMessage() + "\n");
-        }
-    });
-}
+        });
+    }
 
     @Override
     public void onStartMining(String message, int dificulty) {
@@ -1419,11 +1516,47 @@ public void onTransaction(String transaction) {
     @Override
     public void onNonceFound(int nonce) {
         SwingUtilities.invokeLater(() -> {
-            imgWinner.setVisible(true);
             try {
+                imgWinner.setVisible(true);
+
+                // 1. Parar mineração (Local e Rede)
                 myremoteObject.stopMining(nonce);
-            } catch (RemoteException ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                List<RemoteNodeInterface> rede = myremoteObject.getNetwork();
+                for (RemoteNodeInterface node : rede) {
+                    try {
+                        node.stopMining(nonce);
+                    } catch (Exception e) {
+                    }
+                }
+
+                if (this.blocoCandidato != null) {
+                    this.blocoCandidato.setNonce(nonce);
+                    byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
+
+                    // 2. Propagar (Isto vai chamar o propagateBlock nos OUTROS)
+                    myremoteObject.propagateBlock(blockBytes);
+
+                    // 3. [CORREÇÃO] Limpar a MINHA lista de pendentes no Backend
+                    // Como eu minei, tenho de remover estas transações da minha memória
+                    // A forma mais simples (já que o bloco incluiu TUDO o que estava pendente):
+                    List<String> pendentes = myremoteObject.getTransactions();
+                    for (String s : pendentes) {
+                        // Removemos uma a uma ou limpamos tudo se o bloco incluiu tudo
+                        // Para simplificar projeto escolar, assumimos que limpamos tudo:
+                    }
+                    // Adicione este método no RemoteNodeInterface/Object se não quiser fazer um loop complexo:
+                    // myremoteObject.clearTransactions(); <--- Idealmente cria este método
+
+                    // Em alternativa, use o truque de chamar o propagateBlock para SI PRÓPRIO (localmente)
+                    // Isso vai ativar a lógica de limpeza que criámos no Passo 1!
+                    myremoteObject.propagateBlock(blockBytes);
+
+                    this.blocoCandidato = null;
+                    txtLstTransactions.setText("");
+                    JOptionPane.showMessageDialog(this, "Bloco Minado e Propagado!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
     }

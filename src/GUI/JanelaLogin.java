@@ -131,8 +131,9 @@ public class JanelaLogin extends javax.swing.JFrame {
 
             janelaPrincipal.nomeUser = name;
             SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            //t.restartSaudeCerteira();
+            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
             //janelaPrincipal.setLocationRelativeTo(null);
+            System.out.println(t.toString());
             janelaPrincipal.setVisible(true);
 
           

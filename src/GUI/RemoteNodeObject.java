@@ -1,14 +1,14 @@
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 //::                                                                         ::
-//::      Antonio Manuel Rodrigues Manso                                     ::
+//::       Antonio Manuel Rodrigues Manso                                    ::
 //::                                                                         ::
-//::      I N S T I T U T O    P O L I T E C N I C O    D E    T O M A R     ::
-//::      Escola Superior de Tecnologia de Tomar                             ::
-//::      e-mail: manso@ipt.pt                                               ::
-//::      url    : http://orion.ipt.pt/~manso                                ::
+//::       I N S T I T U T O   P O L I T E C N I C O   D E   T O M A R       ::
+//::       Escola Superior de Tecnologia de Tomar                            ::
+//::       e-mail: manso@ipt.pt                                              ::
+//::       url    : http://orion.ipt.pt/~manso                               ::
 //::                                                                         ::
-//::      This software was build with the purpose of investigate and        ::
-//::      learning.                                                          ::
+//::       This software was build with the purpose of investigate and       ::
+//::       learning.                                                         ::
 //::                                                                         ::
 //::                                                                         ::
 //::                                                               (c)2024   ::
@@ -17,6 +17,7 @@
 package GUI;
 
 import SaudeCerteira.User;
+import SaudeCerteira.SaudeWallet; // Needed for FILE_PATH
 import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -44,6 +45,8 @@ import utils.RMI;
 public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeInterface {
 
     public static String REMOTE_OBJECT_NAME = "remoteNode";
+    
+    // Set for active searches to prevent infinite loops in P2P network
     Set<String> activeSearches = new CopyOnWriteArraySet<>();
 
     String address;
@@ -77,10 +80,6 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     }
 
     /**
-     * [NEW HELPER] Static method to find the real IP. 
-     * We make it static so NodeP2PGui can also use it to set the RMI hostname property.
-     */
-    /**
      * [UPDATED HELPER] Finds the real LAN IP, ignoring Docker/VM interfaces.
      */
     public static String getRealIp() {
@@ -105,7 +104,6 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                         }
                         
                         // IGNORE: Docker/WSL usually start with 172.
-                        // We save it just in case we find nothing else, but we keep looking.
                         if (!ip.startsWith("172.")) {
                              backupIp = ip;
                         }
@@ -118,63 +116,75 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         return backupIp;
     }
  
-public User searchUser(String username) throws RemoteException {
-    // 1. Tentar localmente primeiro
-    User local = loadUserFromDisk(username);
-    if (local != null) {
-        return local;
+    /**
+     * Helper method to start a search from this node
+     */
+    public User searchUser(String username) throws RemoteException {
+        // 1. Tentar localmente primeiro
+        User local = loadUserFromDisk(username);
+        if (local != null) {
+            return local;
+        }
+
+        // 2. Se não encontrou, inicia propagação P2P para os vizinhos
+        String searchID = UUID.randomUUID().toString();
+        return findUserRemote(username, searchID, 3); // TTL de 3 saltos
     }
 
-    // 2. Se não encontrou, inicia propagação P2P para os vizinhos
-    String searchID = UUID.randomUUID().toString();
-    return findUserRemote(username, searchID, 3); // TTL de 3 saltos
-}
+    @Override
+    public User findUserRemote(String username, String searchID, int ttl) throws RemoteException {
+        // Proteção contra loops e limite de profundidade (TTL)
+        if (ttl <= 0 || activeSearches.contains(searchID)) {
+            return null;
+        }
 
-@Override
-public User findUserRemote(String username, String searchID, int ttl) throws RemoteException {
-    // Proteção contra loops e limite de profundidade (TTL)
-    if (ttl <= 0 || activeSearches.contains(searchID)) {
+        // Marcar esta busca como processada por este nó
+        activeSearches.add(searchID);
+        System.out.println("Searching for user: " + username + " (ID: " + searchID + ")");
+
+        // 1. Procurar no meu disco local
+        User local = loadUserFromDisk(username);
+        if (local != null) {
+            System.out.println("User FOUND locally: " + username);
+            return local;
+        }
+
+        // 2. Se eu não tenho, pergunto a quem está na minha rede (P2P Propagation)
+        for (RemoteNodeInterface node : network) {
+            try {
+                User found = node.findUserRemote(username, searchID, ttl - 1);
+                if (found != null) {
+                    return found; // Retorna o utilizador encontrado na rede
+                }
+            } catch (RemoteException e) {
+                // Se um nó estiver offline, continuamos a pesquisar nos outros
+            }
+        }
+
         return null;
     }
 
-    // Marcar esta busca como processada por este nó
-    activeSearches.add(searchID);
-
-    // 1. Procurar no meu disco local
-    User local = loadUserFromDisk(username);
-    if (local != null) {
-        return local;
-    }
-
-    // 2. Se eu não tenho, pergunto a quem está na minha rede (P2P Propagation)
-    for (RemoteNodeInterface node : network) {
+    private User loadUserFromDisk(String username) {
         try {
-            User found = node.findUserRemote(username, searchID, ttl - 1);
-            if (found != null) {
-                return found; // Retorna o utilizador encontrado na rede
+            // O caminho completo: data_wallet/username.pub (Using SaudeWallet.FILE_PATH)
+            // Note: Verify if your User class uses data_user/ or data_wallet/ and adjust FILE_PATH accordingly.
+            // Assuming User.java manages its own path logic or shares SaudeWallet path.
+            
+            // Check if file exists before trying to load
+            File pubFile = new File("data_user/" + username + ".pub"); // Hardcoded path based on your previous messages
+            if (!pubFile.exists()) {
+                 pubFile = new File("data_wallet/" + username + ".pub"); // Try alternate path
             }
-        } catch (RemoteException e) {
-            // Se um nó estiver offline, continuamos a pesquisar nos outros
+            
+            if (pubFile.exists()) {
+                // Utilizamos o método User.login(name) que carrega a chave pública do disco
+                return User.login(username);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar utilizador local: " + e.getMessage());
         }
+        return null;
     }
-
-    return null;
-}
-
-private User loadUserFromDisk(String username) {
-    try {
-        // O caminho completo seria data_user/username.pub
-        File pubFile = new File(User.FILE_PATH + username + ".pub");
-        
-        if (pubFile.exists()) {
-            // Utilizamos o seu método login(name) que carrega a chave pública do disco
-            return User.login(username);
-        }
-    } catch (Exception e) {
-        System.err.println("Erro ao carregar utilizador local: " + e.getMessage());
-    }
-    return null;
-}
 
     @Override
     public String getAdress() throws RemoteException {
@@ -261,9 +271,8 @@ private User loadUserFromDisk(String username) {
             return 0; // não faz nada
         }
         miner.isWorking.set(true);
-        for (RemoteNodeInterface node : network) {
-            node.mine(message, dificulty);
-        }
+        
+        
         return miner.mine(message, dificulty);
     }
 
@@ -274,9 +283,7 @@ private User loadUserFromDisk(String username) {
             return ; //nao faz nada
         }
         miner.stopMining(nonce);
-        for (RemoteNodeInterface node : network) {
-            node.stopMining(nonce);
-        }          
+                 
     }
 
     @Override
@@ -298,4 +305,63 @@ private User loadUserFromDisk(String username) {
        public String getHash() throws RemoteException{
            return MinerDistibuted.getHash(miner.message+miner.getNonce());
        }
+
+    @Override
+    public void propagateBlock(byte[] blockData) throws RemoteException {
+        try {
+            // 1. Converter e Carregar (Código que já tem)
+            core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
+            core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+
+            if (bc == null && newBlock.getID() == 0) bc = new core.BlockChain(newBlock);
+            
+            // Verificar se já tenho o bloco
+            if (bc != null && bc.getLastBlock().getID() >= newBlock.getID()) return;
+
+            // 2. Adicionar e Atualizar Carteiras
+            System.out.println("Recebi novo bloco: " + newBlock.getID());
+            bc.add(newBlock);
+            SaudeCerteira.SaudeWallet.updateWallets(newBlock);
+
+            // =================================================================
+            // === [CORREÇÃO] LIMPAR AS TRANSAÇÕES PROCESSADAS DA LISTA ========
+            // =================================================================
+            
+            // 1. Obter as transações que vieram dentro deste bloco
+            List<SaudeCerteira.SaudeTransaction> txsProcessadas = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
+            
+            // 2. Percorrer e remover da lista de pendentes ('this.transactions')
+            for (SaudeCerteira.SaudeTransaction t : txsProcessadas) {
+                // Temos de converter de volta para String Base64 para encontrar na lista e remover
+                byte[] tBytes = utils.Serializer.objectToByteArray(t);
+                String tString = java.util.Base64.getEncoder().encodeToString(tBytes);
+                
+                // Remove da lista de pendentes
+                this.transactions.remove(tString);
+            }
+            
+            // 3. Atualizar a Interface Gráfica (limpar a caixa de texto)
+            if (listener != null) {
+                // Enviamos uma mensagem especial ou simplesmente atualizamos
+                // Como limpámos o 'transactions', ao chamar getTransactions() a GUI vai receber vazio
+                listener.onTransaction("BlockReceived"); 
+            }
+
+            // 4. Propagar para os vizinhos
+            for (RemoteNodeInterface node : network) {
+                try { node.propagateBlock(blockData); } catch (Exception e) {}
+            }
+
+        } catch (Exception e) {
+            System.out.println("Erro ao receber bloco: " + e.getMessage());
+            // throw new RemoteException("Bloco inválido", e); // Comentei para não poluir o log se for duplicado
+        }
+    }
+    
+    // Precisamos de uma referência para a GUI para atualizar a lista visual
+    // Adicione esta variável e método na classe RemoteNodeObject:
+    private Nodelistener gui;
+    public void setGUI(Nodelistener gui){
+        this.gui = gui;
+    }
 }

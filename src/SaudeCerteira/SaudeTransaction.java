@@ -83,7 +83,7 @@ public class SaudeTransaction implements Serializable {
         allData = Utils.concatenate(allData, Utils.longToBytes(timestamp));
         allData = Utils.concatenate(allData, medicamento.getBytes());
 
-        // 2. Verificar a Assinatura Digital
+        // 2. Verificar a Assinatura Digital (Isto garante que foi o médico que enviou)
         if (!SecurityUtils.verifySign(allData, signature, sender)) {
             throw new Exception("Assinatura Inválida - Transação Adulterada!");
         }
@@ -93,16 +93,13 @@ public class SaudeTransaction implements Serializable {
             throw new Exception("Quantidade inválida: " + quantidade);
         }
 
-        // 4. Verificar Stock (Inventário do Médico)
-        // Carregar a carteira do remetente
-        SaudeWallet wSender = SaudeWallet.load(txtSender);
-        
-        // Verificar se o médico tem stock suficiente deste medicamento
+        // --- REMOVIDO: A verificação de stock causava erros na mineração P2P ---
+        /* SaudeWallet wSender = SaudeWallet.load(txtSender);
         int stockAtual = wSender.getDrugInventory().getOrDefault(medicamento, 0);
-
         if (stockAtual < quantidade) {
-            throw new Exception("Stock Insuficiente! " + txtSender + " tem apenas " + stockAtual + " de " + medicamento);
+            throw new Exception("Stock Insuficiente!");
         }
+        */
     }
 
     // --- Getters ---

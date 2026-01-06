@@ -28,10 +28,16 @@ import java.util.List;
  */
 public interface RemoteNodeInterface extends Remote {
 
+    
+    
+    
     //:::: N E T WO R K  :::::::::::
     public String getAdress() throws RemoteException;
-    // Adicione isto à sua RemoteNodeInterface.java
+    // --- NOVO: Pesquisa P2P ---
     public User findUserRemote(String username, String searchID, int ttl) throws RemoteException;
+    
+    // --- NOVO: Propagação de Blocos ---
+    public void propagateBlock(byte[] blockData) throws RemoteException;
 
     public void addNode(RemoteNodeInterface node) throws RemoteException;
 
