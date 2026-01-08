@@ -276,7 +276,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtServerLog.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
         jScrollPane1.setViewportView(txtServerLog);
 
-        pnServer.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        pnServer.add(jScrollPane1, java.awt.BorderLayout.PAGE_END);
 
         tpMain.addTab("Server", pnServer);
 
@@ -288,7 +288,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         txtNetwork.setRows(5);
         jScrollPane2.setViewportView(txtNetwork);
 
-        pnNetwork.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+        pnNetwork.add(jScrollPane2, java.awt.BorderLayout.PAGE_END);
 
         jPanel5.setLayout(new java.awt.BorderLayout());
 
@@ -367,7 +367,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(imgWinner)))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(199, Short.MAX_VALUE))
+                .addContainerGap(251, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -381,7 +381,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(114, 114, 114)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -422,7 +422,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addComponent(jButton2)
                         .addGap(55, 55, 55)
@@ -440,7 +440,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                     .addComponent(jButton1)
                     .addComponent(jButton3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 322, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -493,7 +493,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
                 NomeUtenteActionPerformed(evt);
             }
         });
-        pnTransaction.add(NomeUtente, java.awt.BorderLayout.CENTER);
+        pnTransaction.add(NomeUtente, java.awt.BorderLayout.PAGE_END);
 
         tpMain.addTab("Receitas Médicas", pnTransaction);
 
