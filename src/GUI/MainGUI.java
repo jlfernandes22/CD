@@ -34,7 +34,8 @@ import utils.Utils;
 public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerListener {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainGUI.class.getName());
-
+    private PerfilUser janelaPerfil;
+    private SaudeCerteira.User utilizadorLogado;
     RemoteNodeObject myremoteObject;
     String nomeUser = "Master";
 
@@ -46,6 +47,16 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
         myremoteObject.miner.addListener(this);
+    }
+    
+    public MainGUI(SaudeCerteira.User user) {
+        initComponents();
+        txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
+        setRandomPosition();
+        myremoteObject.miner.addListener(this);
+        
+        this.utilizadorLogado = user;
+        this.janelaPerfil = new PerfilUser(user, this);
     }
 
     
@@ -211,6 +222,11 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         jButton3.setBackground(new java.awt.Color(204, 255, 255));
         jButton3.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
         jButton3.setText("Ver Perfil");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -321,6 +337,11 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         jButton2.setBackground(new java.awt.Color(204, 255, 255));
         jButton2.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
         jButton2.setText("Ver Perfil");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -405,6 +426,11 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         jButton1.setBackground(new java.awt.Color(204, 255, 255));
         jButton1.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
         jButton1.setText("Ver Perfil");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -418,8 +444,8 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(17, 17, 17)
                         .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 62, Short.MAX_VALUE)
-                        .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
+                        .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(65, 65, 65)
                         .addComponent(btStartMinig, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
@@ -440,7 +466,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtNonce, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(spZeros, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(btStartMinig, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -449,7 +475,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
                         .addGap(45, 45, 45)
                         .addComponent(imgMiner, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addContainerGap(27, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout pnMineLayout = new javax.swing.GroupLayout(pnMine);
@@ -516,6 +542,11 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         jButton4.setBackground(new java.awt.Color(204, 255, 255));
         jButton4.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
         jButton4.setText("Ver Perfil");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
@@ -673,7 +704,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
 
         } catch (Exception ex) {
             onException(ex, "Starting server");
-            Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btStartServerActionPerformed
 
@@ -693,7 +723,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             myremoteObject.addNode(node);
         } catch (Exception ex) {
             onException(ex, "connect");
-            Logger.getLogger(NodeP2PGui.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }//GEN-LAST:event_btConnectActionPerformed
@@ -707,7 +736,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
                 myremoteObject.mine(txt, dif);
 
             } catch (RemoteException ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }).start();
     }//GEN-LAST:event_btStartMinigActionPerformed
@@ -818,7 +846,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro na pesquisa: " + ex.getMessage());
-            java.util.logging.Logger.getLogger(this.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_NomeUtenteActionPerformed
 
@@ -828,6 +855,31 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     private void txtNonceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNonceActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNonceActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+     PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+    perfil.setVisible(true);
+    
+    this.setVisible(false);
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+    perfil.setVisible(true);
+    
+    this.setVisible(false);     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+    perfil.setVisible(true);
+    
+    this.setVisible(false);     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+    perfil.setVisible(true);
+    
+    this.setVisible(false);     }//GEN-LAST:event_jButton4ActionPerformed
 
     
     
@@ -856,7 +908,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             onTransaction("Syncronize to " + address);
         } catch (RemoteException ex) {
             onException(ex, "On conect");
-            java.util.logging.Logger.getLogger(NodeP2PGui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
     }
@@ -900,7 +951,6 @@ public void onTransaction(String transaction) {
                 txtMinerMessage.setText(myremoteObject.getHash());
 
             } catch (Exception ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
         });
 
@@ -913,7 +963,6 @@ public void onTransaction(String transaction) {
             try {
                 myremoteObject.stopMining(nonce);
             } catch (RemoteException ex) {
-                System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
         });
     }

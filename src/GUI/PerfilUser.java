@@ -11,15 +11,59 @@ package GUI;
 public class PerfilUser extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(PerfilUser.class.getName());
-
+private SaudeCerteira.User user;
+    private javax.swing.JFrame mainGUI;
     /**
      * Creates new form PerfilUser
      */
-    public PerfilUser() {
+   public PerfilUser(SaudeCerteira.User user, javax.swing.JFrame mainGUI) {
         initComponents();
+        this.user = user;
+        this.mainGUI = mainGUI;
+        preencherDados(user);
+        jTextArea1.setEditable(false);
         
+        // Garante que ao fechar no 'X' não fecha o programa todo
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     }
 
+    public PerfilUser() {
+        initComponents();
+    }
+
+   private void preencherDados(SaudeCerteira.User user) {
+    if (user != null) {
+        StringBuilder info = new StringBuilder();
+        
+        // Dados Pessoais
+        info.append("=== PERFIL DO UTILIZADOR ===\n");
+        info.append("Nome: ").append(user.userName).append("\n");
+        info.append("Data Nascimento: ").append(user.dataNascimento).append("\n");
+        info.append("Nº Utente: ").append(user.numeroUtente).append("\n");
+        info.append("Unidade de Saúde: ").append(user.unidadeSaude).append("\n\n");
+        
+        info.append("=== CREDENCIAIS CRIPTOGRÁFICAS ===\n");
+        
+        // Chave Pública
+        String pubKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.publicKey.getEncoded());
+        info.append("Chave Pública (RSA):\n").append(pubKeyBase64).append("\n\n");
+        
+        // Chave AES
+        String aesKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.aesKey.getEncoded());
+        info.append("Chave AES:\n").append(aesKeyBase64).append("\n\n");
+        
+        // Chave Privada (Protegida)
+        info.append("Chave Privada:\n******** (Protegida por Password)");
+
+        // Definir o texto no JTextArea
+        jTextArea1.setText(info.toString());
+        
+      
+    }else {
+        // Se aparecer isto, o problema é no Login (o user não foi passado)
+        jTextArea1.setText("ERRO: Nenhum utilizador logado encontrado.");
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -29,190 +73,73 @@ public class PerfilUser extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        TxtDataNascimento = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jTextField5 = new javax.swing.JTextField();
-        TxtPublicKey = new javax.swing.JTextField();
-        TxtPrivateKey = new javax.swing.JTextField();
-        TxtAesKey = new javax.swing.JTextField();
-        TxtUtilizadorNome = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        voltarMainGUI = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 153, 153));
         setForeground(new java.awt.Color(0, 153, 153));
 
-        TxtDataNascimento.setEditable(false);
-        TxtDataNascimento.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        TxtDataNascimento.setText("Data Nascimento: 1/1/1111");
-        TxtDataNascimento.setFocusable(false);
-        TxtDataNascimento.addActionListener(new java.awt.event.ActionListener() {
+        jPanel1.setBackground(new java.awt.Color(0, 204, 204));
+
+        voltarMainGUI.setBackground(new java.awt.Color(204, 255, 255));
+        voltarMainGUI.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
+        voltarMainGUI.setText("Voltar");
+        voltarMainGUI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TxtDataNascimentoActionPerformed(evt);
+                voltarMainGUIActionPerformed(evt);
             }
         });
 
-        jTextField3.setEditable(false);
-        jTextField3.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jTextField3.setText("Nº Utente: 123123123");
-        jTextField3.setFocusable(false);
-        jTextField3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField3ActionPerformed(evt);
-            }
-        });
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
 
-        jTextField4.setEditable(false);
-        jTextField4.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jTextField4.setText("Unidade de saúde: XXXX");
-        jTextField4.setFocusable(false);
-        jTextField4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField4ActionPerformed(evt);
-            }
-        });
-
-        jButton1.setFont(new java.awt.Font("Hiragino Sans", 0, 14)); // NOI18N
-        jButton1.setText("Informação Pessoal");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jTextField5.setEditable(false);
-        jTextField5.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        jTextField5.setText("Se é médico: assinatura");
-        jTextField5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField5ActionPerformed(evt);
-            }
-        });
-
-        TxtPublicKey.setEditable(false);
-        TxtPublicKey.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        TxtPublicKey.setText("Chave Pública do User");
-        TxtPublicKey.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TxtPublicKeyActionPerformed(evt);
-            }
-        });
-
-        TxtPrivateKey.setEditable(false);
-        TxtPrivateKey.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        TxtPrivateKey.setText("Chave Privada do User");
-        TxtPrivateKey.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TxtPrivateKeyActionPerformed(evt);
-            }
-        });
-
-        TxtAesKey.setEditable(false);
-        TxtAesKey.setFont(new java.awt.Font("Hiragino Sans", 0, 13)); // NOI18N
-        TxtAesKey.setText("Chave AES do User");
-        TxtAesKey.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TxtAesKeyActionPerformed(evt);
-            }
-        });
-
-        TxtUtilizadorNome.setEditable(false);
-        TxtUtilizadorNome.setFont(new java.awt.Font("Dialog", 0, 48)); // NOI18N
-        TxtUtilizadorNome.setText("Nome");
-        TxtUtilizadorNome.setFocusable(false);
-        TxtUtilizadorNome.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TxtUtilizadorNomeActionPerformed(evt);
-            }
-        });
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(165, 165, 165)
+                        .addComponent(voltarMainGUI))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(61, 61, 61)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(68, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(15, 15, 15)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 462, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(voltarMainGUI)
+                .addGap(34, 34, 34))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(110, 110, 110)
-                .addComponent(jButton1)
-                .addContainerGap(127, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(TxtUtilizadorNome)
-                .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(TxtAesKey, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27))
+            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(44, 44, 44)
-                .addComponent(TxtUtilizadorNome, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(TxtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(TxtPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(TxtPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(TxtAesKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(45, 45, 45))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void TxtDataNascimentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtDataNascimentoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtDataNascimentoActionPerformed
-
-    private void jTextField3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField3ActionPerformed
-
-    private void jTextField4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField4ActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jTextField5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField5ActionPerformed
-
-    private void TxtPublicKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtPublicKeyActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtPublicKeyActionPerformed
-
-    private void TxtPrivateKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtPrivateKeyActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtPrivateKeyActionPerformed
-
-    private void TxtAesKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtAesKeyActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtAesKeyActionPerformed
-
-    private void TxtUtilizadorNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtUtilizadorNomeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtUtilizadorNomeActionPerformed
+    private void voltarMainGUIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_voltarMainGUIActionPerformed
+if (mainGUI != null) {
+        mainGUI.setVisible(true); // Mostra a MainGUI que já tem o user
+        this.dispose(); // Fecha apenas a janela de Perfil
+    }    }//GEN-LAST:event_voltarMainGUIActionPerformed
 
     /**
      * @param args the command line arguments
@@ -240,54 +167,10 @@ public class PerfilUser extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField TxtAesKey;
-    private javax.swing.JTextField TxtDataNascimento;
-    private javax.swing.JTextField TxtPrivateKey;
-    private javax.swing.JTextField TxtPublicKey;
-    private javax.swing.JTextField TxtUtilizadorNome;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JButton voltarMainGUI;
     // End of variables declaration//GEN-END:variables
 
-    public javax.swing.JTextField getTxtAesKey() {
-        return TxtAesKey;
-    }
-
-    public void setTxtAesKey(String TxtAesKey) {
-        this.TxtAesKey.setText(TxtAesKey);
-    }
-
-    public javax.swing.JTextField getTxtPrivateKey() {
-        return TxtPrivateKey;
-    }
-
-    public void setTxtPrivateKey(String TxtPrivateKey) {
-        this.TxtPrivateKey.setText(TxtPrivateKey);
-    }
-
-    public javax.swing.JTextField getTxtPublicKey() {
-        return TxtPublicKey;
-    }
-
-    public void setTxtPublicKey(String TxtPublicKey) {
-        this.TxtPublicKey.setText(TxtPublicKey);
-    }
-
-    public javax.swing.JTextField getTxtDataNascimento() {
-        return TxtDataNascimento;
-    }
-
-    public void setTxtDataNascimento(String TxtDataNascimento) {
-        this.TxtDataNascimento.setText(TxtDataNascimento);
-    }
-
-    public javax.swing.JTextField getTxtUtilizadorNome() {
-        return TxtUtilizadorNome;
-    }
-
-    public void setTxtUtilizadorNome(String TxtUtilizadorNome) {
-        this.TxtUtilizadorNome.setText(TxtUtilizadorNome);
-    }
 }

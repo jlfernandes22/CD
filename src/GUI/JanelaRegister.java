@@ -4,8 +4,10 @@
  */
 package GUI;
 
+import SaudeCerteira.SaudeWallet;
 import SaudeCerteira.User;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -31,266 +33,333 @@ public class JanelaRegister extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
-        UtilizadorField = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        PasswordField = new javax.swing.JTextField();
+        txtNome = new javax.swing.JTextField();
+        txtPassword = new javax.swing.JTextField();
+        txtDataNascimento = new javax.swing.JTextField();
+        txtUtente = new javax.swing.JTextField();
+        txtNaturalidade = new javax.swing.JTextField();
+        txtNacionalidade = new javax.swing.JTextField();
+        txtCC = new javax.swing.JTextField();
+        txtNIF = new javax.swing.JTextField();
+        txtNISS = new javax.swing.JTextField();
+        txtUnidadeSaude = new javax.swing.JTextField();
+        txtSexo = new javax.swing.JTextField();
+        txtMorada = new javax.swing.JTextField();
         RegistarButton = new javax.swing.JButton();
-        TxtDataNascimento = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        TxtIdentificacaoCivil = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        CheckMedico = new javax.swing.JCheckBox();
-        jLabel7 = new javax.swing.JLabel();
-        TxtSexo = new javax.swing.JTextField();
-        jLabel8 = new javax.swing.JLabel();
-        TxtPais = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
-        TxtNumeroUtente = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
-        TxtNISS = new javax.swing.JTextField();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        TxtMorada = new javax.swing.JTextField();
-        TxtNaturalidade = new javax.swing.JTextField();
-        jLabel13 = new javax.swing.JLabel();
-        TxtUnidadeSaude = new javax.swing.JTextField();
-        jLabel14 = new javax.swing.JLabel();
-        TxtTelemovel = new javax.swing.JTextField();
+        txtConfirmPassword = new javax.swing.JTextField();
+        txtTelemovel = new javax.swing.JTextField();
+        medico = new javax.swing.JCheckBox();
+        RegistarButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel3.setFont(new java.awt.Font("Hiragino Sans", 0, 36)); // NOI18N
+        jPanel1.setBackground(new java.awt.Color(0, 204, 204));
+
+        jPanel2.setBackground(new java.awt.Color(204, 255, 255));
+
+        jLabel3.setBackground(new java.awt.Color(204, 255, 255));
+        jLabel3.setFont(new java.awt.Font("ITF Devanagari", 3, 48)); // NOI18N
         jLabel3.setText("Saúde Certeira");
+        jLabel3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jLabel1.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel1.setText("Nome");
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel3)
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
 
-        UtilizadorField.addActionListener(this::UtilizadorFieldActionPerformed);
+        txtNome.setText("Nome:");
+        txtNome.addActionListener(this::txtNomeActionPerformed);
 
-        jLabel2.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel2.setText("Password");
+        txtPassword.setText("Pass:");
+        txtPassword.addActionListener(this::txtPasswordActionPerformed);
 
-        RegistarButton.setFont(new java.awt.Font("Hiragino Sans", 0, 18)); // NOI18N
+        txtDataNascimento.setText("Data de Nascimento:");
+        txtDataNascimento.addActionListener(this::txtDataNascimentoActionPerformed);
+
+        txtUtente.setText("Nº Utente:");
+        txtUtente.addActionListener(this::txtUtenteActionPerformed);
+
+        txtNaturalidade.setText("Naturalidade:");
+        txtNaturalidade.addActionListener(this::txtNaturalidadeActionPerformed);
+
+        txtNacionalidade.setText("País de Nacionalidade:");
+        txtNacionalidade.addActionListener(this::txtNacionalidadeActionPerformed);
+
+        txtCC.setText("Nº Identificação:");
+        txtCC.addActionListener(this::txtCCActionPerformed);
+
+        txtNIF.setText("NIF:");
+        txtNIF.addActionListener(this::txtNIFActionPerformed);
+
+        txtNISS.setText("NISS:");
+        txtNISS.addActionListener(this::txtNISSActionPerformed);
+
+        txtUnidadeSaude.setText("Unidade de Saúde:");
+        txtUnidadeSaude.addActionListener(this::txtUnidadeSaudeActionPerformed);
+
+        txtSexo.setText("Sexo:");
+        txtSexo.addActionListener(this::txtSexoActionPerformed);
+
+        txtMorada.setText("Morada:");
+        txtMorada.addActionListener(this::txtMoradaActionPerformed);
+
+        RegistarButton.setBackground(new java.awt.Color(204, 255, 255));
+        RegistarButton.setFont(new java.awt.Font("Hiragino Sans", 3, 18)); // NOI18N
         RegistarButton.setText("Registar");
         RegistarButton.addActionListener(this::RegistarButtonActionPerformed);
 
-        jLabel4.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel4.setText("Sexo");
+        txtConfirmPassword.setText("Confirmar Pass:");
+        txtConfirmPassword.addActionListener(this::txtConfirmPasswordActionPerformed);
 
-        jLabel6.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel6.setText("Identificação Civil");
+        txtTelemovel.setText("Telemóvel:");
+        txtTelemovel.addActionListener(this::txtTelemovelActionPerformed);
 
-        CheckMedico.setText("Médico");
+        medico.setBackground(new java.awt.Color(204, 255, 255));
+        medico.setText("Médico");
 
-        jLabel7.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel7.setText("Data Nascimento");
+        RegistarButton1.setBackground(new java.awt.Color(204, 255, 255));
+        RegistarButton1.setFont(new java.awt.Font("Hiragino Sans", 3, 18)); // NOI18N
+        RegistarButton1.setText("Login");
+        RegistarButton1.addActionListener(this::RegistarButton1ActionPerformed);
 
-        jLabel8.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel8.setText("Naturalidade");
-
-        jLabel9.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel9.setText("Numero Utente");
-
-        jLabel10.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel10.setText("País Nacionalidade");
-
-        TxtNISS.addActionListener(this::TxtNISSActionPerformed);
-
-        jLabel11.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel11.setText("NISS");
-
-        jLabel12.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel12.setText("Telemóvel");
-
-        TxtNaturalidade.addActionListener(this::TxtNaturalidadeActionPerformed);
-
-        jLabel13.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel13.setText("Morada");
-
-        jLabel14.setFont(new java.awt.Font("Hiragino Sans", 0, 24)); // NOI18N
-        jLabel14.setText("Unidade Saude");
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(txtNome, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtPassword, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDataNascimento, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtUtente, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtNaturalidade)
+                            .addComponent(txtNacionalidade)
+                            .addComponent(txtCC, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtNIF)
+                            .addComponent(txtNISS, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtUnidadeSaude)
+                            .addComponent(txtSexo, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtTelemovel, javax.swing.GroupLayout.Alignment.LEADING))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txtConfirmPassword))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(medico, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(34, 34, 34))))
+                    .addComponent(txtMorada))
+                .addGap(25, 25, 25))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addComponent(RegistarButton, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35)
+                .addComponent(RegistarButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtConfirmPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtUtente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtNaturalidade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtNacionalidade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtCC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtNIF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtNISS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtUnidadeSaude, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtTelemovel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtSexo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(medico, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtMorada, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(RegistarButton)
+                    .addComponent(RegistarButton1))
+                .addContainerGap(17, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(111, 111, 111)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(177, 177, 177)
-                        .addComponent(RegistarButton, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(UtilizadorField, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(TxtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel7)
-                            .addComponent(TxtNumeroUtente, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel9)
-                            .addComponent(TxtPais, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel10)
-                            .addComponent(TxtMorada, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(CheckMedico)
-                                .addComponent(jLabel12)))
-                        .addGap(26, 26, 26)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel14)
-                            .addComponent(TxtNISS, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2)
-                            .addComponent(TxtIdentificacaoCivil, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel6)
-                            .addComponent(TxtSexo, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel11)
-                            .addComponent(TxtUnidadeSaude, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(84, Short.MAX_VALUE))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(261, Short.MAX_VALUE)
-                    .addComponent(TxtNaturalidade, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(123, 123, 123)))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(32, 32, 32)
-                    .addComponent(jLabel13)
-                    .addContainerGap(412, Short.MAX_VALUE)))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(22, 22, 22)
-                    .addComponent(TxtTelemovel, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(362, Short.MAX_VALUE)))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(54, 54, 54)
-                .addComponent(jLabel3)
-                .addGap(4, 4, 4)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(8, 8, 8)
-                        .addComponent(UtilizadorField, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addComponent(jLabel6))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addComponent(jLabel7)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(TxtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtIdentificacaoCivil, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(18, 18, 18))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel9)
-                        .addGap(10, 10, 10)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(TxtSexo, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtNumeroUtente, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
-                    .addComponent(jLabel10))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(TxtPais, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel11)
-                .addGap(15, 15, 15)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(TxtMorada, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(TxtNISS, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel12)
-                    .addComponent(jLabel14))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(TxtUnidadeSaude, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
-                .addComponent(CheckMedico)
-                .addGap(14, 14, 14)
-                .addComponent(RegistarButton)
-                .addGap(30, 30, 30))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(439, Short.MAX_VALUE)
-                    .addComponent(TxtNaturalidade, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(318, 318, 318)))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(484, Short.MAX_VALUE)
-                    .addComponent(jLabel13)
-                    .addGap(269, 269, 269)))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(608, Short.MAX_VALUE)
-                    .addComponent(TxtTelemovel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(149, 149, 149)))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void txtNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNomeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNomeActionPerformed
+
+    private void txtPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPasswordActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtPasswordActionPerformed
+
+    private void txtDataNascimentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDataNascimentoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDataNascimentoActionPerformed
+
+    private void txtUtenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUtenteActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtUtenteActionPerformed
+
+    private void txtNaturalidadeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNaturalidadeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNaturalidadeActionPerformed
+
+    private void txtNacionalidadeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNacionalidadeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNacionalidadeActionPerformed
+
+    private void txtCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCCActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtCCActionPerformed
+
+    private void txtNIFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNIFActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNIFActionPerformed
+
+    private void txtNISSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNISSActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNISSActionPerformed
+
+    private void txtUnidadeSaudeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUnidadeSaudeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtUnidadeSaudeActionPerformed
+
+    private void txtSexoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSexoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSexoActionPerformed
+
+    private void txtMoradaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMoradaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtMoradaActionPerformed
+
     private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
         try {
-            //Criar Utilizador
-            String name = UtilizadorField.getText();
-            String password = PasswordField.getText();
-            String dataNascimento = TxtDataNascimento.getText();
-            String identificacaoCC = TxtIdentificacaoCivil.getText();
-            String numeroUtente = TxtNumeroUtente.getText();
-            String sexo = TxtSexo.getText();
-            String paisNacionalidade = TxtPais.getText();
-            String naturalidade = TxtNaturalidade.getText();
-            String morada = TxtMorada.getText();
-            String NISS = TxtNISS.getText();
-            String telemovel = TxtTelemovel.getText();
-            Boolean medico = CheckMedico.isSelected();
-            String unidadeSaude = TxtUnidadeSaude.getText();
-            User user = User.register(name, password, dataNascimento, identificacaoCC, numeroUtente, sexo, paisNacionalidade, naturalidade, morada, NISS, telemovel, medico, unidadeSaude);
-            SaudeCerteira.SaudeWallet.create(user);
-            JOptionPane.showMessageDialog(this, "wallet created :" + name, "Create user", JOptionPane.WARNING_MESSAGE);
+        // 1. Recolher dados da GUI
+        String name = txtNome.getText().trim();
+        String pass = txtPassword.getText();
+        String confirmPass = txtConfirmPassword.getText();
 
-            JanelaLogin janela = new JanelaLogin();
-            janela.setLocationRelativeTo(null);
-            janela.setVisible(true);
-            this.dispose();
-
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        // Validação de passwords
+        if (!pass.equals(confirmPass)) {
+            JOptionPane.showMessageDialog(this, "As passwords não coincidem!", "Erro de Registo", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        // Recolha dos restantes campos
+        String dataNasc = txtDataNascimento.getText();
+        String cc = txtCC.getText();
+        String utente = txtUtente.getText();
+        String sexo = txtSexo.getText();
+        String nacionalidade = txtNacionalidade.getText();
+        String naturalidade = txtNaturalidade.getText();
+        String morada = txtMorada.getText();
+        String niss = txtNISS.getText();
+        String telemovel = txtTelemovel.getText();
+        boolean isMedico = medico.isSelected();
+        String unidade = txtUnidadeSaude.getText();
+
+        // 2. Validação de campos obrigatórios
+        if (name.isEmpty() || pass.isEmpty() || confirmPass.isEmpty()
+                || dataNasc.isEmpty() || cc.isEmpty() || utente.isEmpty() 
+                || sexo.isEmpty() || nacionalidade.isEmpty() || naturalidade.isEmpty()
+                || morada.isEmpty() || niss.isEmpty() || telemovel.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Todos os campos são obrigatórios!");
+            return;
+        }
+
+        // 3. Execução do Registo e Criação de Carteira
+        RegistarButton.setEnabled(false); // Evita cliques múltiplos
+        
+        new Thread(() -> {
+            try {
+                // ALTERAÇÃO AQUI: Usamos SaudeWallet.create em vez de User.register
+                // Isto cria o Utilizador (chaves RSA/AES) E a Carteira (ficheiro .wlt)
+                SaudeWallet.create(name, pass, dataNasc, cc, utente, sexo, 
+                                 nacionalidade, naturalidade, morada, 
+                                 niss, telemovel, isMedico, unidade);
+                
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this, "Utilizador e Carteira de " + name + " criados com sucesso!");
+                    RegistarButton.setEnabled(true);
+                    
+                         });
+                
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this, "Erro no Registo/Carteira: " + ex.getMessage(), 
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                    RegistarButton.setEnabled(true);
+                });
+            }
+        }).start();
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Erro ao processar formulário: " + e.getMessage());
+    }
+
     }//GEN-LAST:event_RegistarButtonActionPerformed
 
-    private void UtilizadorFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UtilizadorFieldActionPerformed
+    private void txtConfirmPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtConfirmPasswordActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_UtilizadorFieldActionPerformed
+    }//GEN-LAST:event_txtConfirmPasswordActionPerformed
 
-    private void TxtNISSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtNISSActionPerformed
+    private void txtTelemovelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTelemovelActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_TxtNISSActionPerformed
+    }//GEN-LAST:event_txtTelemovelActionPerformed
 
-    private void TxtNaturalidadeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtNaturalidadeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TxtNaturalidadeActionPerformed
+    private void RegistarButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButton1ActionPerformed
+         JanelaLogin Login =  new JanelaLogin();
+         Login.setVisible(true);
+         Login.setLocationRelativeTo(null);
+         
+         this.dispose();
+
+    }//GEN-LAST:event_RegistarButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -318,32 +387,25 @@ public class JanelaRegister extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox CheckMedico;
-    private javax.swing.JTextField PasswordField;
     private javax.swing.JButton RegistarButton;
-    private javax.swing.JTextField TxtDataNascimento;
-    private javax.swing.JTextField TxtIdentificacaoCivil;
-    private javax.swing.JTextField TxtMorada;
-    private javax.swing.JTextField TxtNISS;
-    private javax.swing.JTextField TxtNaturalidade;
-    private javax.swing.JTextField TxtNumeroUtente;
-    private javax.swing.JTextField TxtPais;
-    private javax.swing.JTextField TxtSexo;
-    private javax.swing.JTextField TxtTelemovel;
-    private javax.swing.JTextField TxtUnidadeSaude;
-    private javax.swing.JTextField UtilizadorField;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JButton RegistarButton1;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JCheckBox medico;
+    private javax.swing.JTextField txtCC;
+    private javax.swing.JTextField txtConfirmPassword;
+    private javax.swing.JTextField txtDataNascimento;
+    private javax.swing.JTextField txtMorada;
+    private javax.swing.JTextField txtNIF;
+    private javax.swing.JTextField txtNISS;
+    private javax.swing.JTextField txtNacionalidade;
+    private javax.swing.JTextField txtNaturalidade;
+    private javax.swing.JTextField txtNome;
+    private javax.swing.JTextField txtPassword;
+    private javax.swing.JTextField txtSexo;
+    private javax.swing.JTextField txtTelemovel;
+    private javax.swing.JTextField txtUnidadeSaude;
+    private javax.swing.JTextField txtUtente;
     // End of variables declaration//GEN-END:variables
 }

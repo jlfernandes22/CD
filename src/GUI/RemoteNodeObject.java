@@ -36,11 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.RMI;
 
-/**
- * Created on 27/11/2024, 17:48:32
- *
- * @author manso - computer
- */
+
 public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeInterface {
 
     public static String REMOTE_OBJECT_NAME = "remoteNode";

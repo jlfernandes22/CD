@@ -161,29 +161,26 @@ public class JanelaLogin extends javax.swing.JFrame {
     }//GEN-LAST:event_UtilizadorFieldActionPerformed
 
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
-        try {
-            
-            String name = UtilizadorField.getText();
-            String password = PasswordField.getText();
-            User user = User.login(name, password);
-            MainGUI janelaPrincipal = new MainGUI();
+      try {
+        String name = UtilizadorField.getText();
+        String password = PasswordField.getText();
 
-            janelaPrincipal.nomeUser = name;
-            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            //t.restartSaudeCerteira();
-            //janelaPrincipal.setLocationRelativeTo(null);
-            janelaPrincipal.setVisible(true);
+       SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
 
-          
-            this.dispose();
-            
-            
-         
-           
+        SaudeCerteira.SaudeWallet wallet = SaudeWallet.load(name);
 
-        } catch (Exception ex) {
-            System.getLogger(NodeP2PGui.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
+        // 3. Abre a MainGUI passando o utilizador logado
+        MainGUI janelaPrincipal = new MainGUI(loggedUser);
+
+        // Se tiveres uma variável pública para o nome, podes manter
+        janelaPrincipal.nomeUser = name; 
+
+        janelaPrincipal.setVisible(true);
+        this.dispose();
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this, "Erro no Login: " + ex.getMessage());
+    }
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
