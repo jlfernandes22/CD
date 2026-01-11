@@ -21,8 +21,13 @@ public class JanelaLogin extends javax.swing.JFrame {
      * Creates new form JanelaLogin
      */
     public JanelaLogin() {
-        initComponents();
-        setLocationRelativeTo(null);
+        try {
+            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            initComponents();
+            setLocationRelativeTo(null);
+        } catch (Exception ex) {
+            System.getLogger(JanelaLogin.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 
     /**
@@ -131,7 +136,7 @@ public class JanelaLogin extends javax.swing.JFrame {
 
             janelaPrincipal.nomeUser = name;
             SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            
             //janelaPrincipal.setLocationRelativeTo(null);
             System.out.println(t.toString());
             janelaPrincipal.setVisible(true);
