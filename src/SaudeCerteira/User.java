@@ -42,10 +42,10 @@ public class User implements Serializable{
 
     public static final String FILE_PATH = "data_user/";
 
-    private String userName;
-    private String dataNascimento;
+    public String userName;
+    public String dataNascimento;
     private String identidadeCC;
-    private String numeroUtente;
+    public String numeroUtente;
     private String sexo;
     private String paisnacionalidade;
     private String naturalidade;
@@ -53,11 +53,13 @@ public class User implements Serializable{
     private String NISS;
     private String telemovel;
     private boolean medico;
+
     
     private String unidadeSaude;
     private PublicKey publicKey;
+
     transient private PrivateKey privateKey; // não gravar as chaves nas streams
-    transient private Key aesKey; // não gravar as chaves nas streams
+    public transient Key aesKey; // não gravar as chaves nas streams
 
     protected User() {
         //construtor privado que so pode ser chamado na classe 
