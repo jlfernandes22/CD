@@ -1,58 +1,78 @@
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
-//::                                                                         ::
-//::     Antonio Manuel Rodrigues Manso                                      ::
-//::                                                                         ::
-//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
-//::     Escola Superior de Tecnologia de Tomar                              ::
-//::     e-mail: manso@ipt.pt                                                ::
-//::     url   : http://orion.ipt.pt/~manso                                  ::
-//::                                                                         ::
-//::     This software was build with the purpose of investigate and         ::
-//::     learning.                                                           ::
-//::                                                                         ::
-//::                                                               (c)2022   ::
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//////////////////////////////////////////////////////////////////////////////
 package core;
 
-import utils.SecurityUtils;
+import java.security.MessageDigest;
+import java.util.Base64;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created on 28/09/2022, 11:13:39
- *
- * @author IPT - computer
- * @version 1.0
- */
 public class Miner {
-    public static String hashAlgorithm= "SHA3-256";
-    //maximum number of Nonce
-    public static int MAX_NONCE = (int)1E9;
 
-    public static int getNonce(String data, int dificulty) throws Exception {
-        //String of zeros
-        String zeros = String.format("%0" + dificulty + "d", 0);
-       //starting nonce
-        int nonce = 0;
-        while (nonce < MAX_NONCE) {
-            //System.out.println(nonce);
-            //calculate hash of block
-            String hash = SecurityUtils.calculateHash(data+nonce, hashAlgorithm);
-            //verify hash
-           // System.out.println(nonce +  " " + hash);
-            if (hash.startsWith(zeros)) {
-                return nonce;
-            }
-            //next nounce
-            nonce++;
+    public static final String hashAlgorithm = "SHA3-256";
+
+    /**
+     * Multithreaded Proof-of-Work
+     */
+    public static int getNonce(String msg, int difficulty) {
+        AtomicInteger solution = new AtomicInteger(0);
+        AtomicInteger ticket = new AtomicInteger(new Random().nextInt(100_000));
+
+        int nThreads = Runtime.getRuntime().availableProcessors();
+        MinerThread[] threads = new MinerThread[nThreads];
+
+        for (int i = 0; i < nThreads; i++) {
+            threads[i] = new MinerThread(solution, ticket, msg, difficulty);
+            threads[i].start();
         }
-        return nonce;
-    }
-    
-    
-    
 
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    private static final long serialVersionUID = 202209281113L;
-    //:::::::::::::::::::::::::::  Copyright(c) M@nso  2022  :::::::::::::::::::
-    ///////////////////////////////////////////////////////////////////////////
+        // wait until one thread finds the solution
+        while (solution.get() == 0) {
+            Thread.yield();
+        }
+
+        return solution.get();
+    }
+
+    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    private static class MinerThread extends Thread {
+
+        private final AtomicInteger solution;
+        private final AtomicInteger ticket;
+        private final String message;
+        private final int difficulty;
+        private final String zeros;
+
+        MinerThread(AtomicInteger solution, AtomicInteger ticket,
+                    String msg, int difficulty) {
+            this.solution = solution;
+            this.ticket = ticket;
+            this.message = msg;
+            this.difficulty = difficulty;
+            this.zeros = String.format("%0" + difficulty + "d", 0);
+        }
+
+        @Override
+        public void run() {
+            while (solution.get() == 0) {
+                int nonce = ticket.getAndIncrement();
+                String hash = getHash(message + nonce);
+
+                if (hash.startsWith(zeros)) {
+                    solution.compareAndSet(0, nonce);
+                }
+            }
+        }
+    }
+
+    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    public static String getHash(String msg) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
+            md.update(msg.getBytes());
+            return Base64.getEncoder().encodeToString(md.digest());
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }

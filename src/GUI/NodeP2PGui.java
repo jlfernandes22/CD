@@ -601,19 +601,7 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
         }
 
         try {
-            // --- VERIFICAÇÃO DE STOCK LOCAL ---
-            try {
-                SaudeWallet carteiraMedico = SaudeWallet.load(nomeUser);
-                int stockAtual = carteiraMedico.getDrugInventory().getOrDefault(selectedDrug, 0);
-
-                if (stockAtual < quantidade) {
-                    JOptionPane.showMessageDialog(this,
-                            "Erro: Stock insuficiente!\nTem: " + stockAtual + "\nQuer enviar: " + quantidade);
-                    return; // Impede o envio
-                }
-            } catch (Exception e) {
-                System.out.println("Aviso: Não foi possível verificar stock localmente.");
-            }
+            
 
             // =================================================================================
             // === [NOVO] PESQUISA P2P NA REDE (Adicione este bloco) ===========================
@@ -1469,20 +1457,33 @@ public class NodeP2PGui extends javax.swing.JFrame implements Nodelistener, Mine
     public void onTransaction(String data) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // Se recebermos a mensagem especial de que chegou um bloco
+                // 1. Comandos especiais
                 if (data.equals("BlockReceived")) {
-                    txtLstTransactions.setText(""); // Limpa a lista visualmente
-                    // Opcional: Se quiser ser muito preciso, recarregue do objeto remoto:
-                    // updateTransactionList(); 
+                    txtLstTransactions.setText("");
                     return;
                 }
 
-                // Código normal para adicionar texto (mantenha o que já tinha para novas transações)
-                if (!txtLstTransactions.getText().contains(data)) {
+                // 2. Tentar descodificar como Base64 (É uma Transação Real?)
+                try {
+                    // O descodificador Base64 lança exceção se houver espaços ou caracteres inválidos
+                    byte[] bytes = Base64.getDecoder().decode(data);
+
+                    // Se passou, deserializamos o objeto
+                    SaudeTransaction tx = (SaudeTransaction) Serializer.byteArrayToObject(bytes);
+
+                    // Mostramos a transação formatada
+                    txtLstTransactions.append(tx.toString() + "\n");
+
+                } catch (IllegalArgumentException e) {
+                    // 3. Se deu erro de Base64 (ex: tem espaços), então é uma MENSAGEM DE TEXTO (Log)
+                    // Ex: "Syncronize to //192.168.1.1..."
                     txtLstTransactions.append(data + "\n");
                 }
+
             } catch (Exception ex) {
+                // Outros erros (ex: erro de deserialização)
                 ex.printStackTrace();
+                txtLstTransactions.append("Erro ao processar dados: " + ex.getMessage() + "\n");
             }
         });
     }
