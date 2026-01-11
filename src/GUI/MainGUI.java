@@ -42,10 +42,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     // Variável para guardar o bloco que estamos a tentar minerar
     core.Block blocoCandidato = null;
 
-    
-    // Variável para guardar o bloco que estamos a tentar minerar
-    core.Block blocoCandidato = null;
-
     /**
      * Creates new form MainGUI
      */
@@ -748,6 +744,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             for (String s : pendentes) {
                 try {
                     SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
+                    // Verificar se já existe na blockchain local
                     if (bc != null && bc.existsTransaction(t.getSignature())) {
                         lixoParaRemover.add(s); 
                         continue; 
@@ -775,6 +772,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             new Thread(() -> {
                 try {
                     myremoteObject.mine(headerParaMinar, dif);
+                    // Mandar ordem de mineração para a rede
                     for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
                         try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
                     }
@@ -790,7 +788,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     }                                            
 
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {                                                 
-String patientName = NomeUtente.getText().trim();
+        String patientName = NomeUtente.getText().trim();
         String selectedDrug = (String) Medicamentos.getSelectedItem();
         int quantidade;
         try {
@@ -805,49 +803,61 @@ String patientName = NomeUtente.getText().trim();
         }
 
         try {
-            // 1. Procurar o utilizador na rede P2P (para obter a chave publica)
+            // 1. Verificar se a pasta data_user existe
+            java.io.File folder = new java.io.File("data_user");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // 2. Procurar o utilizador na rede P2P
             User pacienteEncontrado = myremoteObject.searchUser(patientName);
+            
             if (pacienteEncontrado == null) {
-                JOptionPane.showMessageDialog(this, "Utente não encontrado na rede.");
+                JOptionPane.showMessageDialog(this, "Utente '" + patientName + "' não encontrado na rede.");
                 return;
             }
+
+            // 3. GRAVAR A CHAVE MANUALMENTE (Resolve o erro data_user/nome.pub)
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream("data_user/" + patientName + ".pub")) {
+                fos.write(pacienteEncontrado.getPublicKey().getEncoded());
+                fos.flush(); 
+            }
             
-            // 2. Guardar a chave localmente
-            utils.SecurityUtils.saveKey(pacienteEncontrado.getPublicKey(), "data_user/" + patientName);
-             try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
+            // Gravar também o objeto User para uso futuro
+            try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
                 out.writeObject(pacienteEncontrado);
             }
 
-            // 3. Criar a Transação (Construtor já faz a encriptação)
+            // 4. Criar a Transação (A encriptação acontece no construtor)
             SaudeTransaction trans = new SaudeTransaction(nomeUser, patientName, quantidade, selectedDrug);
 
-            // 4. Assinar
+            // 5. Assinar
             User userAtual = User.login(nomeUser);
-            if (userAtual.isMedico()){
+            if (userAtual.isMedico()) {
                 if (userAtual.getPrivateKey() == null) {
                     String pass = JOptionPane.showInputDialog(this, "Password para assinar:");
                     if (pass == null) return;
                     userAtual = User.login(nomeUser, pass);
                 }
-                
+
                 trans.sign(userAtual.getPrivateKey());
 
-                // 5. Enviar
+                // 6. Enviar
                 byte[] transBytes = utils.Serializer.objectToByteArray(trans);
                 String transString = Base64.getEncoder().encodeToString(transBytes);
 
                 if (myremoteObject != null) {
                     myremoteObject.addTransaction(transString);
-                    JOptionPane.showMessageDialog(this, "Receita enviada!");
+                    JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
                 }
             } else {
-                 JOptionPane.showMessageDialog(this, "Apenas médicos podem prescrever.");
+                JOptionPane.showMessageDialog(this, "Apenas médicos podem prescrever.");
             }
-        }catch (Exception ex) {
+        } catch (Exception ex) {
+            ex.printStackTrace(); 
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
-            ex.printStackTrace();
-        }                                          
-    }                                                
+        }
+    }                                    
 
     private void MedicamentosActionPerformed(java.awt.event.ActionEvent evt) {                                             
         // TODO add your handling code here:
