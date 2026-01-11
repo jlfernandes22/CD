@@ -21,8 +21,13 @@ public class JanelaLogin extends javax.swing.JFrame {
      * Creates new form JanelaLogin
      */
     public JanelaLogin() {
-        initComponents();
-        setLocationRelativeTo(null);
+        try {
+            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            initComponents();
+            setLocationRelativeTo(null);
+        } catch (Exception ex) {
+            System.getLogger(JanelaLogin.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 
     /**
@@ -165,8 +170,15 @@ public class JanelaLogin extends javax.swing.JFrame {
         String name = UtilizadorField.getText();
         String password = PasswordField.getText();
 
-       SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
 
+       SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
+          
+            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
+            
+            //janelaPrincipal.setLocationRelativeTo(null);
+            System.out.println(t.toString());
+           
+            
         SaudeCerteira.SaudeWallet wallet = SaudeWallet.load(name);
 
         // 3. Abre a MainGUI passando o utilizador logado

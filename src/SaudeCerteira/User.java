@@ -53,8 +53,11 @@ public class User implements Serializable{
     private String NISS;
     private String telemovel;
     private boolean medico;
-    public String unidadeSaude;
-    public PublicKey publicKey;
+
+    
+    private String unidadeSaude;
+    private PublicKey publicKey;
+
     transient private PrivateKey privateKey; // não gravar as chaves nas streams
     public transient Key aesKey; // não gravar as chaves nas streams
 

@@ -23,3 +23,8 @@
 hs_err_pid*
 replay_pid*
 /dist/
+
+# Ignorar dados gerados pela Blockchain
+data_blocks/
+data_user/
+data_wallet/
