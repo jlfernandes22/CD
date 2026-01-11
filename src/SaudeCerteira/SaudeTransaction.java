@@ -1,122 +1,109 @@
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
-//::                                                                         ::
-//::     Antonio Manuel Rodrigues Manso                                      ::
-//::                                                                         ::
-//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
-//::     Escola Superior de Tecnologia de Tomar                              ::
-//::     e-mail: manso@ipt.pt                                                ::
-//::     url   : http://orion.ipt.pt/~manso                                  ::
-//::                                                                         ::
-//::     This software was build with the purpose of investigate and         ::
-//::     learning.                                                           ::
-//::                                                                         ::
-//::                                                               (c)2025   ::
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- //////////////////////////////////////////////////////////////////////////////
-
 package SaudeCerteira;
 
 import java.io.Serializable;
+import java.security.Key;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import utils.SecurityUtils;
 import utils.Utils;
 
-/**
- * Created on 14/12/2025, 11:47:10
- *
- * @author aluno25979, aluno25946 - computer
- */
 public class SaudeTransaction implements Serializable {
 
-    //atributos auxiliares (apagar em produção)
+    // Cabeçalho Público
     String txtSender;
     String txtReceiver;
-
     PublicKey sender;
     PublicKey receiver;
-    long timestamp;
-    double value;
     byte[] signature;
+    long timestamp;
 
-    public SaudeTransaction(String senderName, String receiverName, double val, String pass) throws Exception {
-        //ler as credenciais do sender e do receiver
-        User uSender = User.login(senderName, pass);
-        User uReceiver = User.login(receiverName);
+    // --- O SEU DIAGRAMA (Híbrido) ---
+    private byte[] dadosEncriptados;    // A Receita (Encriptada com AES)
+    private byte[] chaveAesEncriptada;  // A Chave AES (Encriptada com RSA Pública do Utente)
 
-        this.txtSender = uSender.getUserName();
-        this.sender = uSender.getPublicKey();
-
-        this.txtReceiver = uReceiver.getUserName();
-        this.receiver = uReceiver.getPublicKey();
-
-        this.value = val;
-
+    public SaudeTransaction(String senderName, String receiverName, int qtd, String nomeMedicamento) throws Exception {
+        this.txtSender = senderName;
+        this.txtReceiver = receiverName;
         this.timestamp = System.currentTimeMillis();
 
-        //juntar os bytes de todos os dados
+        // 1. Carregar Chaves RSA (Identidade)
+        User uSender = User.login(senderName);
+        User uReceiver = User.login(receiverName);
+        this.sender = uSender.getPublicKey();
+        this.receiver = uReceiver.getPublicKey();
+
+        // --- PASSO 1: GERAR CHAVE ALEATÓRIA AES ---
+        // Criamos uma chave descartável só para esta receita
+        Key sessionKey = SecurityUtils.generateAESKey(256);
+
+        // --- PASSO 2: ENCRIPTAR DADOS COM AES ---
+        String segredo = qtd + ":" + nomeMedicamento;
+        this.dadosEncriptados = SecurityUtils.encrypt(segredo.getBytes(), sessionKey);
+
+        // --- PASSO 3: ENCRIPTAR A CHAVE AES COM A RSA DO UTENTE ---
+        // Isto corresponde à seta do seu desenho: "obter a chave aes que virá encriptada com a sua chave pública"
+        this.chaveAesEncriptada = SecurityUtils.encrypt(sessionKey.getEncoded(), this.receiver);
+    }
+
+    public void sign(PrivateKey privKey) throws Exception {
+        // Assinamos tudo para garantir integridade
         byte[] allData = Utils.concatenate(this.sender.getEncoded(), this.receiver.getEncoded());
-        allData = Utils.concatenate(allData, Utils.doubleToBytes(value));
         allData = Utils.concatenate(allData, Utils.longToBytes(timestamp));
-        //assinar
-        this.signature = SecurityUtils.sign(allData, uSender.getPrivateKey());
+        allData = Utils.concatenate(allData, dadosEncriptados);
+        allData = Utils.concatenate(allData, chaveAesEncriptada);
+        
+        this.signature = SecurityUtils.sign(allData, privKey);
     }
 
-    public void validate() throws Exception {
-        //juntar os bytes de todos os dados
-        byte[] allData = Utils.concatenate(this.sender.getEncoded(), this.receiver.getEncoded());
-        allData = Utils.concatenate(allData, Utils.doubleToBytes(value));
-        allData = Utils.concatenate(allData, Utils.longToBytes(timestamp));
-        //verificar assinatura
-        if (!SecurityUtils.verifySign(allData, signature, sender)) {
-            throw new Exception("invalid signature ");
+    /**
+     * O Utente usa este método para ler a receita.
+     * Recebe a Chave Privada RSA dele para "abrir o envelope" da chave AES.
+     */
+    public String[] desencriptarConteudo(PrivateKey minhaChavePrivadaRSA) {
+        try {
+            // 1. Destrancar a Chave AES usando a minha Private Key (RSA)
+            byte[] aesKeyBytes = SecurityUtils.decrypt(this.chaveAesEncriptada, minhaChavePrivadaRSA);
+            
+            // Reconstruir o objeto Key AES
+            Key sessionKey = SecurityUtils.getAESKey(aesKeyBytes);
+            
+            // 2. Destrancar a Receita usando a Chave AES recuperada
+            byte[] rawData = SecurityUtils.decrypt(this.dadosEncriptados, sessionKey);
+            
+            String texto = new String(rawData); // Ex: "10:Ben-u-ron"
+            return texto.split(":");
+            
+        } catch (Exception e) {
+            // Se der erro, é porque a chave privada não corresponde à pública do destinatário
+            // e.printStackTrace(); // Descomente para debug
+            return null; 
         }
-        //verificar o valor
-        if (value <= 0) {
-            throw new Exception("ivalid value :" + value);
-        }
-        //ler a carteira
-        SaudeWallet wSender = SaudeWallet.load(txtSender);
-        //vertificar o saldo
-        if (wSender.amount < value) {
-            throw new Exception(txtSender + " not have " + value + " Tcoins Amount=" + wSender.amount);
-        }
-        SaudeWallet wReceiver = SaudeWallet.load(txtReceiver);
-
     }
-
-    public String getTxtSender() {
-        return txtSender;
+    
+    // Getters
+    public String getTxtSender() { 
+        return txtSender; 
     }
-
     public String getTxtReceiver() {
-        return txtReceiver;
+        return txtReceiver; 
     }
-
-    public PublicKey getSender() {
-        return sender;
+    public byte[] getSignature() { return 
+            signature;
     }
-
-    public PublicKey getReceiver() {
-        return receiver;
+    
+    // Getters de compatibilidade
+    public String getDescription() { 
+        return "AES Encrypted"; 
     }
-
-    public double getValue() {
-        return value;
-    }
-
-    public byte[] getSignature() {
-        return signature;
+    
+    public double getValue() { 
+        return 0; 
     }
 
     @Override
     public String toString() {
-        return txtSender + " -> " + value + " -> " + txtReceiver;
+        return "Receita Segura (AES+RSA) De: " + txtSender + " Para: " + txtReceiver;
     }
-
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    
     private static final long serialVersionUID = 202510141147L;
-    //:::::::::::::::::::::::::::  Copyright(c) M@nso  2025  :::::::::::::::::::
-
-
-///////////////////////////////////////////////////////////////////////////
 }

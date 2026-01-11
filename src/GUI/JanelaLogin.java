@@ -21,8 +21,13 @@ public class JanelaLogin extends javax.swing.JFrame {
      * Creates new form JanelaLogin
      */
     public JanelaLogin() {
-        initComponents();
-        setLocationRelativeTo(null);
+        try {
+            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            initComponents();
+            setLocationRelativeTo(null);
+        } catch (Exception ex) {
+            System.getLogger(JanelaLogin.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 
     /**
@@ -127,21 +132,20 @@ public class JanelaLogin extends javax.swing.JFrame {
             String name = UtilizadorField.getText();
             String password = PasswordField.getText();
             User user = User.login(name, password);
-            PerfilUser janelaPrincipal = new PerfilUser();
+            NodeP2PGui janelaPrincipal = new NodeP2PGui();
 
-           
-            janelaPrincipal.setLocationRelativeTo(null);
+            janelaPrincipal.nomeUser = name;
+            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
+            
+            //janelaPrincipal.setLocationRelativeTo(null);
+            System.out.println(t.toString());
             janelaPrincipal.setVisible(true);
 
           
             this.dispose();
             
-            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            janelaPrincipal.setTxtPublicKey(Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded()));
-            janelaPrincipal.setTxtPrivateKey(Base64.getEncoder().encodeToString(user.getPrivateKey().getEncoded()));
-            janelaPrincipal.setTxtAesKey(Base64.getEncoder().encodeToString(user.getAesKey().getEncoded()));
-            janelaPrincipal.setTxtUtilizadorNome(name);
             
+         
            
 
         } catch (Exception ex) {

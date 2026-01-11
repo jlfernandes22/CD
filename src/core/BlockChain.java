@@ -154,6 +154,28 @@ public class BlockChain implements Serializable {
     public static void deleteAllBlocks() throws IOException{
         FolderUtils.cleanFolder(FILE_PATH, true);
     }
+    
+    /**
+     * Verifica se uma assinatura já existe em algum bloco da história.
+     * Isto impede a duplicidade de transações.
+     */
+    public boolean existsTransaction(byte[] signature) {
+        // Percorrer todos os blocos da história
+        for (Block b : blocks) {
+            // Percorrer todas as transações do bloco
+            List<Object> transacoesDoBloco = b.getData().getElements();
+            for (Object o : transacoesDoBloco) {
+                if (o instanceof SaudeCerteira.SaudeTransaction) {
+                    SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) o;
+                    // Comparar as assinaturas
+                    if (java.util.Arrays.equals(t.getSignature(), signature)) {
+                        return true; // ENCONTREI! Já foi processada.
+                    }
+                }
+            }
+        }
+        return false; // Não existe, é nova.
+    }
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

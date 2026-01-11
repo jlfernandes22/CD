@@ -16,8 +16,10 @@
 
 package utils;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -32,6 +34,7 @@ import java.util.List;
  *
  * @author manso - computer
  */
+
 public class Utils {
 
     /**
@@ -120,7 +123,8 @@ public class Utils {
             return null;
         }
     }
-    public static Object  base64ToObject(String txtb64 ) {
+
+    public static Object base64ToObject(String txtb64) {
         byte[] data = Base64.getDecoder().decode(txtb64);
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data))) {
             return (Serializable) ois.readObject();
@@ -211,14 +215,47 @@ public class Utils {
         return txt.substring(0, txt.length() - 1);
     }
 
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    private static final long serialVersionUID = 202510081453L;
-    //:::::::::::::::::::::::::::  Copyright(c) M@nso  2025  :::::::::::::::::::
+    /**
+     * Loads the Medicines CSV file, skipping the messy headers.
+     * @param filePath Path to the file (e.g., "src/multimedia/medicines.csv")
+     * @return List of String arrays containing the data
+     */
+    public static List<String> getMedicineNames(String filePath) {
+        List<String> names = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            // 1. Skip the first 12 lines of metadata/header
+            for (int i = 0; i < 12; i++) {
+                br.readLine();
+            }
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                
+                // 2. Split considering quotes (Regex)
+                String[] cols = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                
+                // 3. Get Name (Index 1) and clean quotes
+                if (cols.length > 1) {
+                    String name = cols[1].replace("\"", "").trim();
+                    if (!name.isEmpty() && !names.contains(name)) {
+                        names.add(name);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading medicines: " + e.getMessage());
+        }
+        return names;
+    }
+
+  
 
     public static void main(String[] args) {
         String s = "ola";
         String b = ObjectToBase64(s);
-        System.out.println((String) base64ToObject(b) );
+        System.out.println((String) base64ToObject(b));
     }
+
 ///////////////////////////////////////////////////////////////////////////
 }

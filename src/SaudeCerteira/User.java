@@ -17,7 +17,11 @@
 package SaudeCerteira;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +53,7 @@ public class User implements Serializable{
     private String NISS;
     private String telemovel;
     private boolean medico;
+    
     private String unidadeSaude;
     private PublicKey publicKey;
     transient private PrivateKey privateKey; // não gravar as chaves nas streams
@@ -166,11 +171,27 @@ public class User implements Serializable{
         //encriptar a privada com a password
         byte[] secretPriv = SecurityUtils.encrypt(user.privateKey.getEncoded(), password);
         Files.write(Path.of(FILE_PATH + name + ".priv"), secretPriv);
+        
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_PATH + name + ".user"))) {
+            out.writeObject(user);
+        }
+
         return user;
     }
 
     public static User login(String name, String pass) throws Exception {
-        User user = new User();
+        User user;
+        
+        File userFile = new File(FILE_PATH + name + ".user");
+        if (userFile.exists()) {
+            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(userFile))) {
+                user = (User) in.readObject();
+            }
+        } else {
+            // Fallback: se não houver ficheiro .user, cria um vazio (mas perde dados pessoais)
+            user = new User();
+            user.userName = name;
+        }
         user.userName = name;
         //ler a chave privada
         byte[] secretPriv = Files.readAllBytes(Path.of(FILE_PATH + name + ".priv"));
@@ -189,8 +210,20 @@ public class User implements Serializable{
     }
 
     public static User login(String name) throws Exception {
-        User user = new User();
-        user.userName = name;
+        User user ;
+        
+        // --- NOVO: TENTAR LER OS DADOS PESSOAIS DO DISCO ---
+        File userFile = new File(FILE_PATH + name + ".user");
+        if (userFile.exists()) {
+            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(userFile))) {
+                user = (User) in.readObject();
+            }
+        } else {
+            user = new User();
+            user.userName = name;
+        }
+        
+        
         //ler a publica
         byte[] plainPub = Files.readAllBytes(Path.of(FILE_PATH + name + ".pub"));
         user.publicKey = SecurityUtils.getPublicKey(plainPub);
