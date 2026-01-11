@@ -12,6 +12,7 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
@@ -38,27 +39,44 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     private SaudeCerteira.User utilizadorLogado;
     RemoteNodeObject myremoteObject;
     String nomeUser = "Master";
-
+    core.Block blocoCandidato = null;
+    
     /**
      * Creates new form MainGUI
      */
     public MainGUI() {
        initComponents();
-        txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
-        setRandomPosition();
-        myremoteObject.miner.addListener(this);
+       txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
+       setRandomPosition();
+       // Auto-start server for convenience
+       btStartServerActionPerformed(null);
     }
     
     public MainGUI(SaudeCerteira.User user) {
         initComponents();
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
-        myremoteObject.miner.addListener(this);
         
         this.utilizadorLogado = user;
+        this.nomeUser = user.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
+        
+        // --- LOAD SNS24 (My Prescriptions) ---
+        carregarInventarioSNS24();
     }
 
+    private void carregarInventarioSNS24() {
+        if (this.utilizadorLogado != null) {
+            try {
+                SaudeWallet wallet = SaudeWallet.load(this.utilizadorLogado.getUserName());
+                // Use private key to decrypt history
+                String relatorio = wallet.getInventarioDescodificado(this.utilizadorLogado.getPrivateKey());
+                jTextArea1.setText(relatorio);
+            } catch (Exception e) {
+                jTextArea1.setText("Error loading prescriptions: " + e.getMessage());
+            }
+        }
+    }
     
      private void setRandomPosition() {
         //:::: Mover a janela para uma posição aleatório
@@ -729,90 +747,130 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
 
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
 
-        new Thread(() -> {
-            try {
-                String txt = Base64.getEncoder().encodeToString(txtLstTransactions.getText().getBytes());
-                int dif = (int) spZeros.getValue();
-                myremoteObject.mine(txt, dif);
+        try {
+            // 1. Load Local Blockchain
+            core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+            
+            int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 1;
+            byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
 
-            } catch (RemoteException ex) {
+            // 2. Filter Transactions and check for duplicates in Blockchain
+            List<String> pendentes = myremoteObject.getTransactions();
+            List<SaudeCerteira.SaudeTransaction> txsReais = new ArrayList<>();
+            List<String> lixoParaRemover = new ArrayList<>();
+
+            for (String s : pendentes) {
+                try {
+                    SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
+                    if (bc != null && bc.existsTransaction(t.getSignature())) {
+                        lixoParaRemover.add(s); 
+                        continue; 
+                    }
+                    txsReais.add(t);
+                } catch (Exception e) {
+                    lixoParaRemover.add(s);
+                }
             }
-        }).start();
+
+            if (txsReais.isEmpty()) {
+                txtLstTransactions.setText("");
+                JOptionPane.showMessageDialog(this, "No valid transactions to mine.");
+                return;
+            }
+
+            // 3. Create Block
+            int dif = (int) spZeros.getValue();
+            this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
+
+            // 4. Start Mining
+            byte[] headerBytes = this.blocoCandidato.getHeaderData();
+            String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
+            
+            new Thread(() -> {
+                try {
+                    myremoteObject.mine(headerParaMinar, dif);
+                    for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
+                        try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
     }//GEN-LAST:event_btStartMinigActionPerformed
 
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
-        // 1. Get Data
         String patientName = NomeUtente.getText().trim();
         String selectedDrug = (String) Medicamentos.getSelectedItem();
-
         int quantidade;
         try {
             quantidade = Integer.parseInt(QuantidadeMed.getText());
         } catch (NumberFormatException e) {
-            quantidade = 1; // Default
+            quantidade = 1;
         }
 
         if (patientName.isEmpty() || selectedDrug == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
+            JOptionPane.showMessageDialog(this, "Please fill all fields.");
             return;
         }
 
         try {
-            // 2. Criar a Transação
-            // O construtor da SaudeTransaction provavelmente já faz a pesquisa P2P que implementamos
-            SaudeTransaction trans = new SaudeTransaction(
-                nomeUser,     // Médico
-                patientName,  // Paciente
-                quantidade,
-                selectedDrug
-            );
+            // 1. Ensure data_user folder exists
+            java.io.File folder = new java.io.File("data_user");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
 
-            // 3. Obter o User do Médico para assinar
+            // 2. Search user in P2P network
+            User pacienteEncontrado = myremoteObject.searchUser(patientName);
+            
+            if (pacienteEncontrado == null) {
+                JOptionPane.showMessageDialog(this, "User '" + patientName + "' not found in network.");
+                return;
+            }
+
+            // 3. SAVE KEY MANUALLY (Fixes data_user/name.pub error)
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream("data_user/" + patientName + ".pub")) {
+                fos.write(pacienteEncontrado.getPublicKey().getEncoded());
+                fos.flush();
+            }
+            // Save User object as well
+            try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
+                out.writeObject(pacienteEncontrado);
+            }
+
+            // 4. Create Transaction (Encryption happens inside constructor)
+            SaudeTransaction trans = new SaudeTransaction(nomeUser, patientName, quantidade, selectedDrug);
+
+            // 5. Sign
             User userAtual = User.login(nomeUser);
-
             if (userAtual.isMedico()){
-
-                // 4. Verificar e Carregar Chave Privada
                 if (userAtual.getPrivateKey() == null) {
-                    String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
-
-                    if (pass == null) return; // Utilizador cancelou
-
-                    // RECARREGA o objeto com a password (desencripta a privada)
+                    String pass = JOptionPane.showInputDialog(this, "Password to sign:");
+                    if (pass == null) return;
                     userAtual = User.login(nomeUser, pass);
                 }
+                
+                trans.sign(userAtual.getPrivateKey());
 
-                // 5. ASSINAR (Agora o userAtual já tem a privada)
-                PrivateKey privKey = userAtual.getPrivateKey();
-                if (privKey == null) {
-                    throw new Exception("Falha ao carregar chave privada. Password incorreta?");
-                }
-
-                trans.sign(privKey);
-
-                // 6. SERIALIZAR E ENVIAR
-                // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
+                // 6. Send
                 byte[] transBytes = utils.Serializer.objectToByteArray(trans);
                 String transString = Base64.getEncoder().encodeToString(transBytes);
 
                 if (myremoteObject != null) {
                     myremoteObject.addTransaction(transString);
-                    JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
-
-                    // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
-                    // this.dispose();
+                    JOptionPane.showMessageDialog(this, "Prescription sent successfully!");
                 }
-            }else{
-                System.out.println(userAtual.getUserName());
-                System.out.println(userAtual.isMedico());
-                JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
-
+            } else {
+                 JOptionPane.showMessageDialog(this, "Only doctors can prescribe.");
             }
         }catch (Exception ex) {
-            // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
-            JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
             ex.printStackTrace();
-
         }
     }//GEN-LAST:event_btAddTransactionActionPerformed
 
@@ -912,23 +970,38 @@ PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
 
     }
 @Override
-public void onTransaction(String transaction) {
+public void onTransaction(String data) {
     SwingUtilities.invokeLater(() -> {
-        try {
-            tpMain.setSelectedComponent(pnCriarReceitas);
-            // Percorre todas as transações armazenadas no nó remoto
-            for (String tr : myremoteObject.getTransactions()) {
-                // Decodifica e converte para objeto
-                byte[] data = Base64.getDecoder().decode(tr);
-                SaudeTransaction obj = (SaudeTransaction) utils.Serializer.byteArrayToObject(data);
-                
-                // Adiciona ao TextArea usando o novo formato do toString()
-                txtLstTransactions.append(obj.toString() + "\n------------------------------------------------\n");
+            try {
+                // 1. Comandos especiais
+                if (data.equals("BlockReceived")) {
+                    txtLstTransactions.setText("");
+                    return;
+                }
+
+                // 2. Tentar descodificar como Base64 (É uma Transação Real?)
+                try {
+                    // O descodificador Base64 lança exceção se houver espaços ou caracteres inválidos
+                    byte[] bytes = Base64.getDecoder().decode(data);
+
+                    // Se passou, deserializamos o objeto
+                    SaudeTransaction tx = (SaudeTransaction) Serializer.byteArrayToObject(bytes);
+
+                    // Mostramos a transação formatada
+                    txtLstTransactions.append(tx.toString() + "\n");
+                    
+                } catch (IllegalArgumentException e) {
+                    // 3. Se deu erro de Base64 (ex: tem espaços), então é uma MENSAGEM DE TEXTO (Log)
+                    // Ex: "Syncronize to //192.168.1.1..."
+                    txtLstTransactions.append(data + "\n");
+                }
+
+            } catch (Exception ex) {
+                // Outros erros (ex: erro de deserialização)
+                ex.printStackTrace();
+                txtLstTransactions.append("Erro ao processar dados: " + ex.getMessage() + "\n");
             }
-        } catch (Exception ex) {
-            txtLstTransactions.append("Erro ao processar transação: " + ex.getMessage() + "\n");
-        }
-    });
+        });
 }
 
     @Override
@@ -959,10 +1032,30 @@ public void onTransaction(String transaction) {
     @Override
     public void onNonceFound(int nonce) {
         SwingUtilities.invokeLater(() -> {
-            imgWinner.setVisible(true);
             try {
+                imgWinner.setVisible(true);
+                
+                // 1. Stop Mining (Local and Network)
                 myremoteObject.stopMining(nonce);
-            } catch (RemoteException ex) {
+                List<RemoteNodeInterface> rede = myremoteObject.getNetwork();
+                for (RemoteNodeInterface node : rede) {
+                    try { node.stopMining(nonce); } catch (Exception e) {}
+                }
+
+                // 2. Finalize Block and Propagate
+                if (this.blocoCandidato != null) {
+                    this.blocoCandidato.setNonce(nonce);
+                    byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
+                    
+                    myremoteObject.propagateBlock(blockBytes);
+                    
+                    // Clear local state
+                    this.blocoCandidato = null;
+                    txtLstTransactions.setText("");
+                    JOptionPane.showMessageDialog(this, "Block Mined and Propagated!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
     }
