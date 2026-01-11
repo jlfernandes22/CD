@@ -12,6 +12,7 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
@@ -19,14 +20,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import utils.GuiUtils;
 import utils.RMI;
-import utils.SecurityUtils;
 import utils.Serializer;
 import utils.Utils;
+
 /**
  *
  * @author angelacsebastiao
@@ -36,75 +35,84 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainGUI.class.getName());
     private PerfilUser janelaPerfil;
     private SaudeCerteira.User utilizadorLogado;
+    
     RemoteNodeObject myremoteObject;
     String nomeUser = "Master";
+    
+    // Variável para guardar o bloco que estamos a tentar minerar
+    core.Block blocoCandidato = null;
 
     /**
      * Creates new form MainGUI
      */
     public MainGUI() {
        initComponents();
-        txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
-        setRandomPosition();
-        myremoteObject.miner.addListener(this);
+       txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
+       setRandomPosition();
+       // Inicia servidor automaticamente para facilitar
+       btStartServerActionPerformed(null);
     }
     
     public MainGUI(SaudeCerteira.User user) {
         initComponents();
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
-        myremoteObject.miner.addListener(this);
         
         this.utilizadorLogado = user;
+        this.nomeUser = user.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
+        
+        // --- CARREGAR SNS24 (Minhas Receitas) ---
+        carregarInventarioSNS24();
     }
 
-    
-     private void setRandomPosition() {
-        //:::: Mover a janela para uma posição aleatório
-        this.setSize(776, 476);
-        // Obter a resolução do ecrã
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        // Gerar posição aleatória garantindo que a janela cabe no ecrã
-        Random r = new Random();
-        int x = r.nextInt(screenSize.width - this.getWidth());
-        int y = r.nextInt(screenSize.height - this.getHeight());
-        // Colocar a janela na posição aleatória
-        setLocation(x, y);
-        txtServerListeningPort.setText("1000" + r.nextInt(10));
-        btStartServerActionPerformed(null);
-        btConnectActionPerformed(null);
-        //btAddTransactionActionPerformed(null);
-        loadMedicinesToGUI();
-    }
-
-     
-     private void loadMedicinesToGUI() {
-        // 1. Define the path to your CSV file
-        // Adjust "src/multimedia/..." if your folder structure is different
-        String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
-        
-        // 2. Get the list of names
-        List<String> medicines = Utils.getMedicineNames(path);
-        
-        // 3. Convert to Array for the ComboBox
-        String[] medArray = medicines.toArray(new String[0]);
-        
-        // 4. Set the model to the ComboBox
-        // Assuming you named your component 'cmbMedicamentos' in the GUI Builder
-        // If you didn't create it yet, I check for null to avoid crash
-        if (Medicamentos != null) {
-            Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
+    private void carregarInventarioSNS24() {
+        if (this.utilizadorLogado != null) {
+            try {
+                SaudeWallet wallet = SaudeWallet.load(this.utilizadorLogado.getUserName());
+                // Usa a chave privada para desencriptar o histórico
+                String relatorio = wallet.getInventarioDescodificado(this.utilizadorLogado.getPrivateKey());
+                jTextArea1.setText(relatorio);
+            } catch (Exception e) {
+                jTextArea1.setText("Erro ao carregar receitas: " + e.getMessage());
+            }
         }
     }
     
+     private void setRandomPosition() {
+        this.setSize(776, 520);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Random r = new Random();
+        int x = r.nextInt(screenSize.width - this.getWidth());
+        int y = r.nextInt(screenSize.height - this.getHeight());
+        setLocation(x, y);
+        
+        txtServerListeningPort.setText("1000" + r.nextInt(10));
+        
+        // Auto-start
+        btStartServerActionPerformed(null);
+        btConnectActionPerformed(null);
+        loadMedicinesToGUI();
+    }
+
+     private void loadMedicinesToGUI() {
+        try {
+            String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
+            List<String> medicines = Utils.getMedicineNames(path);
+            String[] medArray = medicines.toArray(new String[0]);
+            if (Medicamentos != null) {
+                Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
+            }
+        } catch (Exception e) {}
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jPanel7 = new javax.swing.JPanel();
@@ -670,53 +678,45 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
 
-    private void txtServerListeningPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtServerListeningPortActionPerformed
+    private void txtServerListeningPortActionPerformed(java.awt.event.ActionEvent evt) {                                                       
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtServerListeningPortActionPerformed
+    }                                                      
 
-    private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartServerActionPerformed
+    private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {                                              
         try {
-            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            // [FIX] FORCE RMI TO USE THE REAL IP (Not Docker/Localhost)
-            // This MUST be done before creating the RemoteNodeObject
+            // [FIX] FORCE RMI TO USE THE REAL IP
             String realIp = RemoteNodeObject.getRealIp();
             System.setProperty("java.rmi.server.hostname", realIp);
             System.out.println("RMI Hostname forced to: " + realIp);
-            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-            //:::::::::: Objeto remoto  :::::::::::::::
             int port = Integer.parseInt(txtServerListeningPort.getText());
             String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
 
-            // Now create the object (It will now use the correct IP in the Stub)
             myremoteObject = new RemoteNodeObject(port, this);
-
             RMI.startRemoteObject(myremoteObject, port, name);
 
-            //:::::::: GUI  ::::::::::::::::
             this.setTitle(RMI.getRemoteName(port, name));
             this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
 
-            // Re-enable miner listener now that object exists
             if(myremoteObject.miner != null) myremoteObject.miner.addListener(this);
 
         } catch (Exception ex) {
             onException(ex, "Starting server");
         }
-    }//GEN-LAST:event_btStartServerActionPerformed
+    }                                             
 
-    private void txtNodeAddressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNodeAddressActionPerformed
+    private void txtNodeAddressActionPerformed(java.awt.event.ActionEvent evt) {                                               
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNodeAddressActionPerformed
+    }                                              
 
-    private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
+    private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {                                          
         if (evt.getKeyCode() == KeyEvent.VK_ENTER)
         btConnectActionPerformed(null);
-    }//GEN-LAST:event_txtNodeAddressKeyPressed
+    }                                         
 
-    private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
+    private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {                                          
         try {
             String address = txtNodeAddress.getText();
             RemoteNodeInterface node = (RemoteNodeInterface) RMI.getRemote(address);
@@ -725,161 +725,174 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             onException(ex, "connect");
         }
 
-    }//GEN-LAST:event_btConnectActionPerformed
+    }                                         
 
-    private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
+    private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {                                             
+         try {
+            // 1. Carregar Blockchain Local
+            core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+            
+            int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 1;
+            byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
 
-        new Thread(() -> {
-            try {
-                String txt = Base64.getEncoder().encodeToString(txtLstTransactions.getText().getBytes());
-                int dif = (int) spZeros.getValue();
-                myremoteObject.mine(txt, dif);
+            // 2. Filtrar Transações e verificar duplicados na Blockchain
+            List<String> pendentes = myremoteObject.getTransactions();
+            List<SaudeCerteira.SaudeTransaction> txsReais = new ArrayList<>();
+            List<String> lixoParaRemover = new ArrayList<>();
 
-            } catch (RemoteException ex) {
+            for (String s : pendentes) {
+                try {
+                    SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
+                    if (bc != null && bc.existsTransaction(t.getSignature())) {
+                        lixoParaRemover.add(s); 
+                        continue; 
+                    }
+                    txsReais.add(t);
+                } catch (Exception e) {
+                    lixoParaRemover.add(s);
+                }
             }
-        }).start();
-    }//GEN-LAST:event_btStartMinigActionPerformed
 
-    private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
-        // 1. Get Data
+            if (txsReais.isEmpty()) {
+                txtLstTransactions.setText("");
+                JOptionPane.showMessageDialog(this, "Sem transações válidas para minerar.");
+                return;
+            }
+
+            // 3. Criar Bloco
+            int dif = (int) spZeros.getValue();
+            this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
+
+            // 4. Iniciar Mineração
+            byte[] headerBytes = this.blocoCandidato.getHeaderData();
+            String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
+            
+            new Thread(() -> {
+                try {
+                    myremoteObject.mine(headerParaMinar, dif);
+                    for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
+                        try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+        }
+    }                                            
+
+    private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {                                                 
         String patientName = NomeUtente.getText().trim();
         String selectedDrug = (String) Medicamentos.getSelectedItem();
-
         int quantidade;
         try {
             quantidade = Integer.parseInt(QuantidadeMed.getText());
         } catch (NumberFormatException e) {
-            quantidade = 1; // Default
+            quantidade = 1;
         }
 
         if (patientName.isEmpty() || selectedDrug == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um paciente e um medicamento.");
+            JOptionPane.showMessageDialog(this, "Preencha todos os campos.");
             return;
         }
 
         try {
-            // 2. Criar a Transação
-            // O construtor da SaudeTransaction provavelmente já faz a pesquisa P2P que implementamos
-            SaudeTransaction trans = new SaudeTransaction(
-                nomeUser,     // Médico
-                patientName,  // Paciente
-                quantidade,
-                selectedDrug
-            );
+            // 1. Procurar o utilizador na rede P2P (para obter a chave publica)
+            User pacienteEncontrado = myremoteObject.searchUser(patientName);
+            if (pacienteEncontrado == null) {
+                JOptionPane.showMessageDialog(this, "Utente não encontrado na rede.");
+                return;
+            }
+            
+            // 2. Guardar a chave localmente
+            utils.SecurityUtils.saveKey(pacienteEncontrado.getPublicKey(), "data_user/" + patientName);
+             try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
+                out.writeObject(pacienteEncontrado);
+            }
 
-            // 3. Obter o User do Médico para assinar
+            // 3. Criar a Transação (Construtor já faz a encriptação)
+            SaudeTransaction trans = new SaudeTransaction(nomeUser, patientName, quantidade, selectedDrug);
+
+            // 4. Assinar
             User userAtual = User.login(nomeUser);
-
             if (userAtual.isMedico()){
-
-                // 4. Verificar e Carregar Chave Privada
                 if (userAtual.getPrivateKey() == null) {
-                    String pass = JOptionPane.showInputDialog(this, "Insira a password para assinar a receita:");
-
-                    if (pass == null) return; // Utilizador cancelou
-
-                    // RECARREGA o objeto com a password (desencripta a privada)
+                    String pass = JOptionPane.showInputDialog(this, "Password para assinar:");
+                    if (pass == null) return;
                     userAtual = User.login(nomeUser, pass);
                 }
+                
+                trans.sign(userAtual.getPrivateKey());
 
-                // 5. ASSINAR (Agora o userAtual já tem a privada)
-                PrivateKey privKey = userAtual.getPrivateKey();
-                if (privKey == null) {
-                    throw new Exception("Falha ao carregar chave privada. Password incorreta?");
-                }
-
-                trans.sign(privKey);
-
-                // 6. SERIALIZAR E ENVIAR
-                // Garanta que o Serializer está a converter o objeto 'trans' (a receita)
+                // 5. Enviar
                 byte[] transBytes = utils.Serializer.objectToByteArray(trans);
                 String transString = Base64.getEncoder().encodeToString(transBytes);
 
                 if (myremoteObject != null) {
                     myremoteObject.addTransaction(transString);
-                    JOptionPane.showMessageDialog(this, "Receita enviada com sucesso!");
-
-                    // Se não quer que a janela feche imediatamente, remova ou comente a linha abaixo:
-                    // this.dispose();
+                    JOptionPane.showMessageDialog(this, "Receita enviada!");
                 }
-            }else{
-                System.out.println(userAtual.getUserName());
-                System.out.println(userAtual.isMedico());
-                JOptionPane.showMessageDialog(this, "Não é médico pra prescrever receitas!");
-
+            } else {
+                 JOptionPane.showMessageDialog(this, "Apenas médicos podem prescrever.");
             }
         }catch (Exception ex) {
-            // Trata erros de: Paciente não encontrado, Password errada ou erro de rede
-            JOptionPane.showMessageDialog(this, "Erro no processo: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
             ex.printStackTrace();
-
         }
-    }//GEN-LAST:event_btAddTransactionActionPerformed
+    }                                                
 
-    private void MedicamentosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MedicamentosActionPerformed
+    private void MedicamentosActionPerformed(java.awt.event.ActionEvent evt) {                                             
         // TODO add your handling code here:
-    }//GEN-LAST:event_MedicamentosActionPerformed
+    }                                            
 
-    private void NomeUtenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NomeUtenteActionPerformed
-
+    private void NomeUtenteActionPerformed(java.awt.event.ActionEvent evt) {                                           
           try {
-            // 1. Obter o nome do utilizador da TextBox
             String nomeProcurar = NomeUtente.getText().trim();
-
-            if (nomeProcurar.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Por favor, insira um nome de utilizador.");
-                return;
-            }
-
-            // 2. Chamar o método de pesquisa (que faz a busca local e P2P)
-            // Nota: Assumindo que o seu objeto remoto está acessível na GUI
+            if (nomeProcurar.isEmpty()) return;
             User encontrado = myremoteObject.searchUser(nomeProcurar);
-
-            // 3. Tratar o resultado
             if (encontrado != null) {
-                JOptionPane.showMessageDialog(this, "Utilizador encontrado!\n" + encontrado.toString());
-
-                // Aqui pode preencher outros campos da sua GUI com os dados de 'encontrado'
+                JOptionPane.showMessageDialog(this, "Utilizador encontrado: " + encontrado.getUserName());
             } else {
-                JOptionPane.showMessageDialog(this, "Utilizador não encontrado na rede.");
+                JOptionPane.showMessageDialog(this, "Utilizador não encontrado.");
             }
-
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro na pesquisa: " + ex.getMessage());
         }
-    }//GEN-LAST:event_NomeUtenteActionPerformed
+    }                                          
 
     
   
     
-    private void txtNonceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNonceActionPerformed
+    private void txtNonceActionPerformed(java.awt.event.ActionEvent evt) {                                         
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNonceActionPerformed
+    }                                        
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-     PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
-    perfil.setVisible(true);
-    
-    this.setVisible(false);
-    }//GEN-LAST:event_jButton3ActionPerformed
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+        perfil.setVisible(true);
+        this.setVisible(false);
+    }                                        
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
-    perfil.setVisible(true);
-    
-    this.setVisible(false);     }//GEN-LAST:event_jButton2ActionPerformed
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+        perfil.setVisible(true);
+        this.setVisible(false);     
+    }                                        
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
-    perfil.setVisible(true);
-    
-    this.setVisible(false);     }//GEN-LAST:event_jButton1ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+        perfil.setVisible(true);
+        this.setVisible(false);     
+    }                                        
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
-    perfil.setVisible(true);
-    
-    this.setVisible(false);     }//GEN-LAST:event_jButton4ActionPerformed
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
+        perfil.setVisible(true);
+        this.setVisible(false);     
+    }                                        
 
     
     
@@ -911,25 +924,30 @@ PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
         }
 
     }
-@Override
-public void onTransaction(String transaction) {
-    SwingUtilities.invokeLater(() -> {
+    
+    @Override
+    public void onTransaction(String data) {
+        SwingUtilities.invokeLater(() -> {
         try {
-            tpMain.setSelectedComponent(pnCriarReceitas);
-            // Percorre todas as transações armazenadas no nó remoto
-            for (String tr : myremoteObject.getTransactions()) {
-                // Decodifica e converte para objeto
-                byte[] data = Base64.getDecoder().decode(tr);
-                SaudeTransaction obj = (SaudeTransaction) utils.Serializer.byteArrayToObject(data);
-                
-                // Adiciona ao TextArea usando o novo formato do toString()
-                txtLstTransactions.append(obj.toString() + "\n------------------------------------------------\n");
+            if (data.equals("BlockReceived")) {
+                txtLstTransactions.setText("");
+                return;
+            }
+            // Tenta descodificar como Base64 (Transação Real)
+            try {
+                byte[] bytes = Base64.getDecoder().decode(data);
+                SaudeTransaction tx = (SaudeTransaction) Serializer.byteArrayToObject(bytes);
+                txtLstTransactions.append(tx.toString() + "\n");
+            } catch (IllegalArgumentException e) {
+                // Se falhar Base64, é texto simples (Log)
+                txtLstTransactions.append(data + "\n");
             }
         } catch (Exception ex) {
-            txtLstTransactions.append("Erro ao processar transação: " + ex.getMessage() + "\n");
+            ex.printStackTrace();
         }
     });
-}
+
+    }
 
     @Override
     public void onStartMining(String message, int dificulty) {
@@ -959,10 +977,30 @@ public void onTransaction(String transaction) {
     @Override
     public void onNonceFound(int nonce) {
         SwingUtilities.invokeLater(() -> {
-            imgWinner.setVisible(true);
             try {
+                imgWinner.setVisible(true);
+                
+                // 1. Parar mineração (Local e Rede)
                 myremoteObject.stopMining(nonce);
-            } catch (RemoteException ex) {
+                List<RemoteNodeInterface> rede = myremoteObject.getNetwork();
+                for (RemoteNodeInterface node : rede) {
+                    try { node.stopMining(nonce); } catch (Exception e) {}
+                }
+
+                // 2. Finalizar Bloco e Propagar
+                if (this.blocoCandidato != null) {
+                    this.blocoCandidato.setNonce(nonce);
+                    byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
+                    
+                    myremoteObject.propagateBlock(blockBytes);
+                    
+                    // Limpar estado local
+                    this.blocoCandidato = null;
+                    txtLstTransactions.setText("");
+                    JOptionPane.showMessageDialog(this, "Bloco Minado e Propagado!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
     }
@@ -994,7 +1032,7 @@ public void onTransaction(String transaction) {
         java.awt.EventQueue.invokeLater(() -> new MainGUI().setVisible(true));
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JComboBox<String> Medicamentos;
     private javax.swing.JTextField NomeUtente;
     private javax.swing.JTextField QuantidadeMed;
@@ -1040,5 +1078,5 @@ public void onTransaction(String transaction) {
     private javax.swing.JTextField txtServerListeningObjectName;
     private javax.swing.JTextField txtServerListeningPort;
     private javax.swing.JTextPane txtServerLog;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 }

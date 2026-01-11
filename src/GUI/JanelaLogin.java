@@ -171,12 +171,12 @@ public class JanelaLogin extends javax.swing.JFrame {
         String password = PasswordField.getText();
 
 
-       SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
+        SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
           
-            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
+        SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
             
-            //janelaPrincipal.setLocationRelativeTo(null);
-            System.out.println(t.toString());
+        //janelaPrincipal.setLocationRelativeTo(null);
+        System.out.println(t.toString());
            
             
         SaudeCerteira.SaudeWallet wallet = SaudeWallet.load(name);
