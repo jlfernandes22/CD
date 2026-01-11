@@ -40,12 +40,12 @@ private SaudeCerteira.User user;
         info.append("Nome: ").append(user.userName).append("\n");
         info.append("Data Nascimento: ").append(user.dataNascimento).append("\n");
         info.append("Nº Utente: ").append(user.numeroUtente).append("\n");
-        info.append("Unidade de Saúde: ").append(user.unidadeSaude).append("\n\n");
+        info.append("Unidade de Saúde: ").append(user.getUnidadeSaude()).append("\n\n");
         
         info.append("=== CREDENCIAIS CRIPTOGRÁFICAS ===\n");
         
         // Chave Pública
-        String pubKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.publicKey.getEncoded());
+        String pubKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded());
         info.append("Chave Pública (RSA):\n").append(pubKeyBase64).append("\n\n");
         
         // Chave AES
