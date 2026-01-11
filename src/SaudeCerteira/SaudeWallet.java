@@ -168,7 +168,57 @@ public class SaudeWallet implements Serializable {
         }
         return drugInventory;
     }
+    
+    public String getInventarioDescodificado(PrivateKey minhaChavePrivada) {
+        Map<String, Integer> inventario = new HashMap<>();
+        StringBuilder relatorio = new StringBuilder();
 
+        for (WalletTransaction wt : transactions) {
+            SaudeTransaction t = wt.getTransaction();
+            
+            // Tenta abrir o envelope digital (AES + RSA)
+            String[] dados = t.desencriptarConteudo(minhaChavePrivada);
+            
+            if (dados != null && dados.length == 2) {
+                try {
+                    int qtd = Integer.parseInt(dados[0]);
+                    String medicamento = dados[1];
+
+                    // LÓGICA DE STOCK INFINITO:
+                    // Apenas somamos se formos o DESTINATÁRIO.
+                    // Se formos o Médico (Remetente), não fazemos nada ao inventário (não subtraímos).
+                    
+                    if (t.getTxtReceiver().equals(this.user)) {
+                        int atual = inventario.getOrDefault(medicamento, 0);
+                        inventario.put(medicamento, atual + qtd);
+                    }
+                    
+                } catch (Exception e) {}
+            }
+        }
+
+        // --- GERAÇÃO DO RELATÓRIO VISUAL ---
+        
+        // 1. Se for Médico, mostra o que prescreveu (Histórico de Emissões)
+        // (Verificamos se o inventário está vazio mas há transações, assumimos que é médico ou novo user)
+        // Como o médico não recebe receitas, o inventário dele estará sempre vazio com esta lógica.
+        
+        relatorio.append("\n=== 🏥 CARTEIRA DE SAÚDE (SNS24) ===\n");
+        
+        if (inventario.isEmpty()) {
+            relatorio.append(" (Sem medicamentos disponíveis para levantar)\n");
+        } else {
+            relatorio.append("--- Receitas Disponíveis ---\n");
+            for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
+                relatorio.append(" 💊 ").append(entry.getKey())
+                         .append(": ").append(entry.getValue()).append(" un.\n");
+            }
+        }
+        
+        relatorio.append("====================================\n");
+        
+        return relatorio.toString();
+    }
     /**
      * Reinicia todo o sistema e cria o Bloco Genesis com Stock Inicial
      */
