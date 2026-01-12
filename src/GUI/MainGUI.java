@@ -1070,6 +1070,18 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
+        
+        try {
+            java.io.File dados = new java.io.File("blockchain.bch");
+            if (!dados.exists()) {
+                System.out.println("Primeira execução detetada. A configurar sistema...");
+                // Chama a função que cria o Master, System e o Bloco 0 com saldo
+                SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+                System.out.println("Sistema reiniciado com sucesso!");
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao iniciar sistema: " + e.getMessage());
+        }
         //</editor-fold>
 
         /* Create and display the form */

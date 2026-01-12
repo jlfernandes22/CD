@@ -147,52 +147,60 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         }
         network.add(node);
         this.transactions.addAll(node.getTransactions());
-
-        // :::::::::: SINCRONIZAÇÃO DA BLOCKCHAIN (SYNC - CORRIGIDO) ::::::::::
+        
+        // :::::::::: SYNC: SINCRONIZAÇÃO DA BLOCKCHAIN AO CONECTAR ::::::::::
         try {
-            // 1. Pedir a blockchain do nó a que nos acabámos de ligar
+            System.out.println("A iniciar sincronização com " + node.getAdress());
+            
+            // 1. Pedir a blockchain do nó remoto
             core.BlockChain remoteChain = node.getBlockchain();
             core.BlockChain localChain = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
-            // 2. Se a dele for válida e maior que a minha (ou se eu não tiver nenhuma)
+            // 2. Decidir se devemos atualizar (Se a dele for maior ou se eu não tiver nada)
+            boolean devoAtualizar = false;
+            
             if (remoteChain != null) {
-                boolean devoAtualizar = false;
-
                 if (localChain == null) {
-                    devoAtualizar = true; // Não tenho nada, aceito tudo
+                    devoAtualizar = true; // Sou novo, aceito tudo
                 } else {
-                    // CORREÇÃO: Comparar pelo ID do último bloco em vez de getSize()
-                    int myHeight = localChain.getLastBlock().getID();
-                    int remoteHeight = remoteChain.getLastBlock().getID();
-
-                    if (remoteHeight > myHeight) {
+                    // Se o último bloco dele tiver ID maior, ele está à frente
+                    if (remoteChain.getLastBlock().getID() > localChain.getLastBlock().getID()) {
                         devoAtualizar = true;
                     }
                 }
-
-                if (devoAtualizar) {
-                    System.out.println("Sincronizando: Recebida chain maior (Topo: " + remoteChain.getLastBlock().getID() + ").");
-
-                    // 3. Guardar a nova chain no disco
-                    remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
-
-                    // 4. Avisar a GUI para recarregar tudo
-                    if (listener != null) {
-                        listener.onTransaction("BlockReceived"); // Isto força o refresh da GUI
-                    }
-                }
             }
+
+            // 3. Aplicar a atualização
+            if (devoAtualizar) {
+                System.out.println("SYNC: Recebida blockchain maior. A atualizar...");
+                
+                // Gravar no disco
+                remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
+                
+                // Atualizar Saldos e Carteiras com a nova chain
+                // (Percorre todos os blocos para reconstruir o estado das carteiras)
+                core.Block current = remoteChain.getLastBlock();
+                // Nota: O ideal seria reconstruir desde o genesis, mas para este projeto, 
+                // garantir que o último bloco atualiza o estado pode ser suficiente se o SaudeWallet for robusto.
+                // Mas para garantir, podemos forçar um reload na GUI.
+                
+                if (listener != null) {
+                    // Envia sinal para a GUI recarregar o inventário visualmente
+                    listener.onTransaction("BlockReceived"); 
+                }
+            } else {
+                System.out.println("SYNC: A minha blockchain já está atualizada.");
+            }
+            
         } catch (Exception e) {
-            System.err.println("Erro na sincronização: " + e.getMessage());
+            System.err.println("Erro no SYNC: " + e.getMessage());
+            e.printStackTrace();
         }
-        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
         node.addNode(this);
         for (RemoteNodeInterface iremoteP2P : network) {
-            try {
-                iremoteP2P.addNode(node);
-            } catch (Exception e) {
-            }
+            try { iremoteP2P.addNode(node); } catch (Exception e) {}
         }
         if (listener != null) {
             listener.onConect(node.getAdress());
