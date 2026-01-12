@@ -241,48 +241,41 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
     @Override
     public void propagateBlock(byte[] blockData) throws RemoteException {
-        // 1. Se estivermos a minerar e recebermos um bloco válido de fora, paramos.
-        if (miner.isMining()) {
-            miner.stopMining(-1);
-        }
-
-        // Lock para garantir que ninguém mexe na blockchain ao mesmo tempo
-        synchronized (activeSearches) { // Ou use um objeto específico para lock
+        
+        synchronized (activeSearches) {
             try {
-                // 2. Converter bytes para Bloco
                 core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
-                
-                // 3. Carregar Blockchain do disco
                 core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
-                // Caso inicial (Blockchain vazia)
-                if (bc == null && newBlock.getID() == 0) {
-                    bc = new core.BlockChain(newBlock);
-                }
-                
-                // 4. VERIFICAÇÃO DE SEGURANÇA (Evita o erro "Invalid Block")
+                boolean isNewBlock = true;
+
+                // 2. Verificar se o bloco já existe na chain carregada
                 if (bc != null) {
-                    // Se já temos este bloco (ou um mais à frente), ignoramos
-                    if (bc.getLastBlock().getID() >= newBlock.getID()) {
-                        System.out.println("Bloco ignorado (já existe ou é antigo): " + newBlock.getID());
-                        return; 
+                    if (bc.getLastBlock().getID() == newBlock.getID()) {
+                        // O bloco já está no disco (gravado por outro nó local ou por nós antes)
+                        // Não precisamos de adicionar, mas PRECISAMOS de atualizar a GUI/Carteira
+                        isNewBlock = false;
+                    } else if (bc.getLastBlock().getID() > newBlock.getID()) {
+                        return; // Bloco velho, ignorar completamente
                     }
-                    // Se o hash anterior não bater certo, é um bloco órfão/inválido
+                } else if (newBlock.getID() == 0) {
+                     bc = new core.BlockChain(newBlock);
+                }
+
+                // 3. Se for novo, adicionamos. Se já existir, apenas usamos os dados para atualizar.
+                if (isNewBlock && bc != null) {
+                     // Verifica hash anterior para evitar "Invalid Block"
                     if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
-                        System.out.println("Bloco inválido (Hash anterior incorreto) - Cadeia pode ter mudado.");
+                        System.out.println("Bloco órfão recebido. Ignorado.");
                         return;
                     }
+                    bc.add(newBlock);
                 }
 
-                // 5. Adicionar à Blockchain
-                // O método .add() lança exceção se for inválido. Nós apanhamos o erro em baixo.
-                if (bc != null) {
-                    bc.add(newBlock); 
-                    // Salvar as carteiras (Saldos/Stock)
-                    SaudeCerteira.SaudeWallet.updateWallets(newBlock);
-                }
+                // 4. ATUALIZAÇÃO CRÍTICA: Atualizar carteiras e GUI mesmo que o bloco já existisse no disco
+                SaudeCerteira.SaudeWallet.updateWallets(newBlock);
 
-                // 6. Limpar transações pendentes (Mempool)
+                // 5. Limpar transações da lista pendente
                 List<SaudeCerteira.SaudeTransaction> mined = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
                 for (SaudeCerteira.SaudeTransaction t : mined) {
                     byte[] tBytes = utils.Serializer.objectToByteArray(t);
@@ -290,24 +283,22 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                     this.transactions.remove(tString);
                 }
 
-                // 7. Notificar a GUI
+                // 6. Avisar a GUI para limpar o texto e mostrar saldo
                 if (listener != null) {
                     listener.onTransaction("BlockReceived");
                 }
 
-                // 8. Propagar para o resto da rede (Gossip Protocol)
-                for (RemoteNodeInterface node : network) {
-                    try {
-                        node.propagateBlock(blockData);
-                    } catch (Exception ignore) {
-                        // Se um nó cair, ignoramos e continuamos para o próximo
+                // 7. Propagar para a rede (apenas se for novo para nós, para evitar loops infinitos excessivos)
+                if (isNewBlock) {
+                    for (RemoteNodeInterface node : network) {
+                        try {
+                            node.propagateBlock(blockData);
+                        } catch (Exception ignore) {}
                     }
                 }
 
             } catch (Exception e) {
-                // AQUI ESTÁ A CORREÇÃO PRINCIPAL:
-                // Se der erro (ex: Invalid Block), apenas fazemos print e NÃO lançamos erro fatal
-                System.out.println("Bloco rejeitado pela blockchain local: " + e.getMessage());
+                System.out.println("Erro ao processar bloco: " + e.getMessage());
             }
         }
     }
