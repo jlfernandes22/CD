@@ -14,8 +14,10 @@ public interface RemoteNodeInterface extends Remote {
     public User findUserRemote(String username, String searchID, int ttl) throws RemoteException;
     
     // Propagação de Blocos
+    public core.BlockChain getBlockchain() throws RemoteException;
+    
     public void propagateBlock(byte[] blockData) throws RemoteException;
-
+    
     public void addNode(RemoteNodeInterface node) throws RemoteException;
 
     public List<RemoteNodeInterface> getNetwork() throws RemoteException;

@@ -23,7 +23,6 @@ import utils.RMI;
 
 public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeInterface {
 
-
     public static String REMOTE_OBJECT_NAME = "remoteNode";
 
     // Set for active searches
@@ -148,9 +147,49 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         }
         network.add(node);
         this.transactions.addAll(node.getTransactions());
+        
+        // :::::::::: SINCRONIZAÇÃO DA BLOCKCHAIN (SYNC - CORRIGIDO) ::::::::::
+        try {
+            // 1. Pedir a blockchain do nó a que nos acabámos de ligar
+            core.BlockChain remoteChain = node.getBlockchain();
+            core.BlockChain localChain = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+
+            // 2. Se a dele for válida e maior que a minha (ou se eu não tiver nenhuma)
+            if (remoteChain != null) {
+                boolean devoAtualizar = false;
+                
+                if (localChain == null) {
+                    devoAtualizar = true; // Não tenho nada, aceito tudo
+                } else {
+                    // CORREÇÃO: Comparar pelo ID do último bloco em vez de getSize()
+                    int myHeight = localChain.getLastBlock().getID();
+                    int remoteHeight = remoteChain.getLastBlock().getID();
+                    
+                    if (remoteHeight > myHeight) {
+                        devoAtualizar = true;
+                    }
+                }
+                
+                if (devoAtualizar) {
+                    System.out.println("Sincronizando: Recebida chain maior (Topo: " + remoteChain.getLastBlock().getID() + ").");
+                    
+                    // 3. Guardar a nova chain no disco
+                    remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
+                    
+                    // 4. Avisar a GUI para recarregar tudo
+                    if (listener != null) {
+                        listener.onTransaction("BlockReceived"); // Isto força o refresh da GUI
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Erro na sincronização: " + e.getMessage());
+        }
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
         node.addNode(this);
         for (RemoteNodeInterface iremoteP2P : network) {
-            iremoteP2P.addNode(node);
+            try { iremoteP2P.addNode(node); } catch (Exception e) {}
         }
         if (listener != null) {
             listener.onConect(node.getAdress());
@@ -241,7 +280,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
     @Override
     public void propagateBlock(byte[] blockData) throws RemoteException {
-        
+
         synchronized (activeSearches) {
             try {
                 core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
@@ -259,12 +298,12 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                         return; // Bloco velho, ignorar completamente
                     }
                 } else if (newBlock.getID() == 0) {
-                     bc = new core.BlockChain(newBlock);
+                    bc = new core.BlockChain(newBlock);
                 }
 
                 // 3. Se for novo, adicionamos. Se já existir, apenas usamos os dados para atualizar.
                 if (isNewBlock && bc != null) {
-                     // Verifica hash anterior para evitar "Invalid Block"
+                    // Verifica hash anterior para evitar "Invalid Block"
                     if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
                         System.out.println("Bloco órfão recebido. Ignorado.");
                         return;
@@ -293,7 +332,8 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                     for (RemoteNodeInterface node : network) {
                         try {
                             node.propagateBlock(blockData);
-                        } catch (Exception ignore) {}
+                        } catch (Exception ignore) {
+                        }
                     }
                 }
 
@@ -302,4 +342,15 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             }
         }
     }
+    
+    // [NOVO] Implementação do método de sync
+    @Override
+    public core.BlockChain getBlockchain() throws RemoteException {
+        try {
+            return core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+        } catch (Exception e) {
+            return null; // Se não tiver blockchain, devolve null
+        }
+    }
+    
 }

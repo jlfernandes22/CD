@@ -182,7 +182,7 @@ public class SaudeWallet implements Serializable {
         // Criar Bloco Genesis
         // Nota: Com stock infinito, esta transação é opcional, mas serve para testar o sistema.
         ArrayList<SaudeTransaction> data = new ArrayList<>();
-        SaudeTransaction t = new SaudeTransaction("System", "Master", 100, "Osvyrti");
+        SaudeTransaction t = new SaudeTransaction("System", "Master", Integer.MAX_VALUE, "Osvyrti");
         User uSystem = User.login("System", "123qwe");
         t.sign(uSystem.getPrivateKey());
         data.add(t);
