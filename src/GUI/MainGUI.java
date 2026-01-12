@@ -30,15 +30,15 @@ import utils.Utils;
  *
  * @author angelacsebastiao
  */
-public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerListener {
-    
+public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerListener {
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainGUI.class.getName());
     private PerfilUser janelaPerfil;
     private SaudeCerteira.User utilizadorLogado;
-    
+
     RemoteNodeObject myremoteObject;
     String nomeUser = "Master";
-    
+
     // Variável para guardar o bloco que estamos a tentar minerar
     core.Block blocoCandidato = null;
 
@@ -46,18 +46,18 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
      * Creates new form MainGUI
      */
     public MainGUI() {
-       initComponents();
-       txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
-       setRandomPosition();
-       // Inicia servidor automaticamente
-       btStartServerActionPerformed(null);
+        initComponents();
+        txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
+        setRandomPosition();
+        // Inicia servidor automaticamente
+        btStartServerActionPerformed(null);
     }
-    
+
     public MainGUI(SaudeCerteira.User user) {
         initComponents();
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
-        
+
         this.utilizadorLogado = user;
         this.nomeUser = user.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
@@ -76,24 +76,24 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             }
         }
     }
-    
-     private void setRandomPosition() {
+
+    private void setRandomPosition() {
         this.setSize(776, 520);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Random r = new Random();
         int x = r.nextInt(screenSize.width - this.getWidth());
         int y = r.nextInt(screenSize.height - this.getHeight());
         setLocation(x, y);
-        
+
         txtServerListeningPort.setText("1000" + r.nextInt(10));
-        
+
         // Auto-start
         btStartServerActionPerformed(null);
         btConnectActionPerformed(null);
         loadMedicinesToGUI();
     }
 
-     private void loadMedicinesToGUI() {
+    private void loadMedicinesToGUI() {
         try {
             String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
             List<String> medicines = Utils.getMedicineNames(path);
@@ -101,7 +101,8 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             if (Medicamentos != null) {
                 Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     /**
@@ -706,7 +707,9 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
 
             // Re-enable miner listener now that object exists
-            if(myremoteObject.miner != null) myremoteObject.miner.addListener(this);
+            if (myremoteObject.miner != null) {
+                myremoteObject.miner.addListener(this);
+            }
 
         } catch (Exception ex) {
             onException(ex, "Starting server");
@@ -719,7 +722,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
 
     private void txtNodeAddressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNodeAddressKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER)
-        btConnectActionPerformed(null);
+            btConnectActionPerformed(null);
     }//GEN-LAST:event_txtNodeAddressKeyPressed
 
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
@@ -734,50 +737,56 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     }//GEN-LAST:event_btConnectActionPerformed
 
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
-         try {
+        // [CORREÇÃO] Desativar botão para impedir criação de múltiplas threads
+        btStartMinig.setEnabled(false);
+
+        try {
             // 1. Carregar Blockchain Local
             core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
-            
+
             int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 1;
             byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
 
-            // 2. Filtrar Transações e verificar duplicados na Blockchain
+            // 2. Filtrar Transações
             List<String> pendentes = myremoteObject.getTransactions();
             List<SaudeCerteira.SaudeTransaction> txsReais = new ArrayList<>();
-            List<String> lixoParaRemover = new ArrayList<>();
 
             for (String s : pendentes) {
                 try {
                     SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
                     if (bc != null && bc.existsTransaction(t.getSignature())) {
-                        lixoParaRemover.add(s); 
-                        continue; 
+                        continue; // Ignora duplicados
                     }
                     txsReais.add(t);
                 } catch (Exception e) {
-                    lixoParaRemover.add(s);
                 }
             }
 
             if (txsReais.isEmpty()) {
                 txtLstTransactions.setText("");
                 JOptionPane.showMessageDialog(this, "Sem transações válidas para minerar.");
+                btStartMinig.setEnabled(true); // Reativar botão se falhar
                 return;
             }
 
-            // 3. Criar Bloco
+            // 3. Criar Bloco Candidato
             int dif = (int) spZeros.getValue();
             this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
 
-            // 4. Iniciar Mineração
+            // 4. Iniciar Mineração em Thread
             byte[] headerBytes = this.blocoCandidato.getHeaderData();
             String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
-            
+
             new Thread(() -> {
                 try {
+                    // Inicia mineração local
                     myremoteObject.mine(headerParaMinar, dif);
+                    // Manda a rede minerar também
                     for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
-                        try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
+                        try {
+                            node.mine(headerParaMinar, dif);
+                        } catch (Exception e) {
+                        }
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -787,6 +796,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+            btStartMinig.setEnabled(true); // Reativar botão em caso de erro
         }
     }//GEN-LAST:event_btStartMinigActionPerformed
 
@@ -814,7 +824,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
 
             // 2. Procurar o utilizador na rede P2P
             User pacienteEncontrado = myremoteObject.searchUser(patientName);
-            
+
             if (pacienteEncontrado == null) {
                 JOptionPane.showMessageDialog(this, "Utente '" + patientName + "' não encontrado na rede.");
                 return;
@@ -823,9 +833,9 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             // 3. GRAVAR A CHAVE MANUALMENTE (Para garantir que o ficheiro existe)
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream("data_user/" + patientName + ".pub")) {
                 fos.write(pacienteEncontrado.getPublicKey().getEncoded());
-                fos.flush(); 
+                fos.flush();
             }
-            
+
             // Gravar também o objeto User para uso futuro
             try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
                 out.writeObject(pacienteEncontrado);
@@ -839,7 +849,9 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
             if (userAtual.isMedico()) {
                 if (userAtual.getPrivateKey() == null) {
                     String pass = JOptionPane.showInputDialog(this, "Password para assinar:");
-                    if (pass == null) return;
+                    if (pass == null) {
+                        return;
+                    }
                     userAtual = User.login(nomeUser, pass);
                 }
 
@@ -857,7 +869,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
                 JOptionPane.showMessageDialog(this, "Apenas médicos podem prescrever.");
             }
         } catch (Exception ex) {
-            ex.printStackTrace(); 
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
         }
     }//GEN-LAST:event_btAddTransactionActionPerformed
@@ -867,9 +879,11 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     }//GEN-LAST:event_MedicamentosActionPerformed
 
     private void NomeUtenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NomeUtenteActionPerformed
-          try {
+        try {
             String nomeProcurar = NomeUtente.getText().trim();
-            if (nomeProcurar.isEmpty()) return;
+            if (nomeProcurar.isEmpty()) {
+                return;
+            }
             User encontrado = myremoteObject.searchUser(nomeProcurar);
             if (encontrado != null) {
                 JOptionPane.showMessageDialog(this, "Utilizador encontrado: " + encontrado.getUserName());
@@ -881,9 +895,7 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         }
     }//GEN-LAST:event_NomeUtenteActionPerformed
 
-    
-  
-    
+
     private void txtNonceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNonceActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNonceActionPerformed
@@ -897,23 +909,21 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
         perfil.setVisible(true);
-        this.setVisible(false);     
+        this.setVisible(false);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
         perfil.setVisible(true);
-        this.setVisible(false);     
+        this.setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         PerfilUser perfil = new PerfilUser(this.utilizadorLogado, this);
         perfil.setVisible(true);
-        this.setVisible(false);     
+        this.setVisible(false);
     }//GEN-LAST:event_jButton4ActionPerformed
 
-    
-    
     @Override
     public void onStart(String message) {
         imgServerRunning.setEnabled(true);
@@ -942,22 +952,25 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         }
 
     }
-    
+
     @Override
     public void onTransaction(String data) {
         SwingUtilities.invokeLater(() -> {
             try {
+                // Se for sinal de bloco recebido
                 if (data.equals("BlockReceived")) {
                     txtLstTransactions.setText("");
+                    // [CORREÇÃO] Atualizar carteira visualmente
+                    carregarInventarioSNS24();
                     return;
                 }
-                // Tenta descodificar como Base64 (Transação Real)
+
+                // Se for transação normal
                 try {
                     byte[] bytes = Base64.getDecoder().decode(data);
                     SaudeTransaction tx = (SaudeTransaction) Serializer.byteArrayToObject(bytes);
                     txtLstTransactions.append(tx.toString() + "\n");
                 } catch (IllegalArgumentException e) {
-                    // Se falhar Base64, é texto simples (Log)
                     txtLstTransactions.append(data + "\n");
                 }
             } catch (Exception ex) {
@@ -981,10 +994,13 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         SwingUtilities.invokeLater(() -> {
             try {
                 imgMiner.setVisible(false);
-                btStartMinig.setEnabled(true);
-                txtNonce.setText("" + nonce);
-                txtMinerMessage.setText(myremoteObject.getHash());
+                btStartMinig.setEnabled(true); // [CORREÇÃO] Reativar botão sempre
 
+                if (nonce >= 0) {
+                    txtNonce.setText("" + nonce);
+                } else {
+                    txtMinerMessage.setText("Mineração cancelada (Outro nó venceu).");
+                }
             } catch (Exception ex) {
             }
         });
@@ -996,24 +1012,43 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         SwingUtilities.invokeLater(() -> {
             try {
                 imgWinner.setVisible(true);
-                
-                // 1. Parar mineração (Local e Rede)
+                btStartMinig.setEnabled(true); // [CORREÇÃO] Reativar botão
+
+                // 1. Mandar parar todos os mineradores
                 myremoteObject.stopMining(nonce);
                 List<RemoteNodeInterface> rede = myremoteObject.getNetwork();
                 for (RemoteNodeInterface node : rede) {
-                    try { node.stopMining(nonce); } catch (Exception e) {}
+                    try {
+                        node.stopMining(nonce);
+                    } catch (Exception e) {
+                    }
                 }
 
-                // 2. Finalizar Bloco e Propagar
+                // 2. Validar e Propagar
                 if (this.blocoCandidato != null) {
+                    // [CORREÇÃO CRÍTICA] Verificar se a blockchain já mudou entretanto
+                    core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+                    byte[] hashAtualDisco = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
+
+                    // Se o hash anterior do meu bloco não for igual ao último da chain, perdi a corrida
+                    if (!java.util.Arrays.equals(this.blocoCandidato.getPreviousHash(), hashAtualDisco)) {
+                        JOptionPane.showMessageDialog(this, "Outro nó minou primeiro. O seu bloco foi descartado.");
+                        this.blocoCandidato = null;
+                        return;
+                    }
+
+                    // Finalizar bloco
                     this.blocoCandidato.setNonce(nonce);
                     byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
-                    
+
+                    // Propagar
                     myremoteObject.propagateBlock(blockBytes);
-                    
-                    // Limpar estado local
-                    this.blocoCandidato = null;
+
+                    // [CORREÇÃO] Atualizar GUI imediatamente
                     txtLstTransactions.setText("");
+                    carregarInventarioSNS24(); // Atualiza saldo/receitas
+
+                    this.blocoCandidato = null;
                     JOptionPane.showMessageDialog(this, "Bloco Minado e Propagado!");
                 }
             } catch (Exception ex) {
@@ -1022,8 +1057,6 @@ public class MainGUI extends javax.swing.JFrame  implements Nodelistener, MinerL
         });
     }
 
-
-    
     /**
      * @param args the command line arguments
      */

@@ -10,9 +10,9 @@
             <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/GUI/RemoteNodeObject.java</file>
             <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/GUI/RemoteNodeInterface.java</file>
             <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/GUI/JanelaLogin.java</file>
-            <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/core/Miner.java</file>
             <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/core/Block.java</file>
             <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/GUI/MainGUI.java</file>
+            <file>file:/home/jlfernandes/NetBeansProjects/FinalProject/CD/src/GUI/MinerDistibuted.java</file>
         </group>
     </open-files>
 </project-private>

@@ -1,14 +1,14 @@
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 //::                                                                         ::
-//::     Antonio Manuel Rodrigues Manso                                      ::
+//::      Antonio Manuel Rodrigues Manso                                     ::
 //::                                                                         ::
-//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
-//::     Escola Superior de Tecnologia de Tomar                              ::
-//::     e-mail: manso@ipt.pt                                                ::
-//::     url   : http://orion.ipt.pt/~manso                                  ::
+//::      I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R       ::
+//::      Escola Superior de Tecnologia de Tomar                             ::
+//::      e-mail: manso@ipt.pt                                               ::
+//::      url   : http://orion.ipt.pt/~manso                                 ::
 //::                                                                         ::
-//::     This software was build with the purpose of investigate and         ::
-//::     learning.                                                           ::
+//::      This software was build with the purpose of investigate and        ::
+//::      learning.                                                          ::
 //::                                                                         ::
 //::                                                               (c)2025   ::
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -85,7 +85,12 @@ public class Block implements Serializable {
      */
     public void mine() throws Exception {
         String dataTxt = Base64.getEncoder().encodeToString(getHeaderData());
-        int pow = Miner.getNonce(dataTxt, this.dificulty);
+        
+        // CORREÇÃO: Usar o MinerDistibuted da GUI
+        // Certifique-se que a classe MinerDistibuted está acessível (public)
+        GUI.MinerDistibuted miner = new GUI.MinerDistibuted();
+        int pow = miner.mine(dataTxt, this.dificulty);
+        
         setNonce(pow);
     }
 
@@ -98,8 +103,9 @@ public class Block implements Serializable {
     public void setNonce(int nonce) throws Exception {
         this.nonce = nonce;
         String hash = Base64.getEncoder().encodeToString(getHeaderData());
+        // CORREÇÃO: "SHA-256" direto em vez de Miner.hashAlgorithm
         this.currentHash = SecurityUtils.calculateHash(
-                (hash + nonce).getBytes(), Miner.hashAlgorithm);
+                (hash + nonce).getBytes(), "SHA-256");
     }
 
     public String toStringHeader() {
@@ -145,8 +151,9 @@ public class Block implements Serializable {
 
             //:::::::::: o hash é valido ::::::::::::::::::::::::::::
             txtHash = Base64.getEncoder().encodeToString(getHeaderData()) + nonce;
+            // CORREÇÃO: "SHA-256" direto
             byte[] myHash = SecurityUtils.calculateHash(
-                    txtHash.getBytes(), Miner.hashAlgorithm);
+                    txtHash.getBytes(), "SHA-256");
             return Arrays.equals(myHash, currentHash);
         } catch (Exception ex) {
             return false;

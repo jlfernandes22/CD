@@ -21,11 +21,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.RMI;
 
-
 public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeInterface {
 
+
     public static String REMOTE_OBJECT_NAME = "remoteNode";
-    
+
     // Set for active searches
     Set<String> activeSearches = new CopyOnWriteArraySet<>();
 
@@ -42,7 +42,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             this.address = RMI.getRemoteName(host, port, REMOTE_OBJECT_NAME);
             this.network = new CopyOnWriteArraySet<>();
             this.transactions = new CopyOnWriteArraySet<>();
-            
+
             this.listener = listener;
             if (listener != null) {
                 listener.onStart("Object " + address + " listening");
@@ -51,7 +51,9 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             }
         } catch (Exception ex) {
             Logger.getLogger(RemoteNodeObject.class.getName()).log(Level.SEVERE, null, ex);
-            if (listener != null) listener.onException(ex, "Start remote Object");
+            if (listener != null) {
+                listener.onException(ex, "Start remote Object");
+            }
         }
     }
 
@@ -64,40 +66,57 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface iface = interfaces.nextElement();
-                if (iface.isLoopback() || !iface.isUp()) continue;
+                if (iface.isLoopback() || !iface.isUp()) {
+                    continue;
+                }
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
                     if (addr instanceof Inet4Address) {
                         String ip = addr.getHostAddress();
-                        if (ip.startsWith("192.168.") || ip.startsWith("10.")) return ip;
-                        if (!ip.startsWith("172.")) backupIp = ip;
+                        if (ip.startsWith("192.168.") || ip.startsWith("10.")) {
+                            return ip;
+                        }
+                        if (!ip.startsWith("172.")) {
+                            backupIp = ip;
+                        }
                     }
                 }
             }
-        } catch (SocketException e) { e.printStackTrace(); }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         return backupIp;
     }
 
     // ... (Mantém searchUser, findUserRemote e loadUserFromDisk iguais) ...
     public User searchUser(String username) throws RemoteException {
         User local = loadUserFromDisk(username);
-        if (local != null) return local;
+        if (local != null) {
+            return local;
+        }
         String searchID = UUID.randomUUID().toString();
         return findUserRemote(username, searchID, 3);
     }
 
     @Override
     public User findUserRemote(String username, String searchID, int ttl) throws RemoteException {
-        if (ttl <= 0 || activeSearches.contains(searchID)) return null;
+        if (ttl <= 0 || activeSearches.contains(searchID)) {
+            return null;
+        }
         activeSearches.add(searchID);
         User local = loadUserFromDisk(username);
-        if (local != null) return local;
+        if (local != null) {
+            return local;
+        }
         for (RemoteNodeInterface node : network) {
             try {
                 User found = node.findUserRemote(username, searchID, ttl - 1);
-                if (found != null) return found;
-            } catch (RemoteException e) {}
+                if (found != null) {
+                    return found;
+                }
+            } catch (RemoteException e) {
+            }
         }
         return null;
     }
@@ -105,24 +124,37 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     private User loadUserFromDisk(String username) {
         try {
             File pubFile = new File("data_user/" + username + ".pub");
-            if (!pubFile.exists()) pubFile = new File("data_wallet/" + username + ".pub");
-            if (pubFile.exists()) return User.login(username);
-        } catch (Exception e) {}
+            if (!pubFile.exists()) {
+                pubFile = new File("data_wallet/" + username + ".pub");
+            }
+            if (pubFile.exists()) {
+                return User.login(username);
+            }
+        } catch (Exception e) {
+        }
         return null;
     }
 
     // ... (Mantém getAdress, addNode, getNetwork iguais) ...
     @Override
-    public String getAdress() throws RemoteException { return address; }
+    public String getAdress() throws RemoteException {
+        return address;
+    }
 
     @Override
     public void addNode(RemoteNodeInterface node) throws RemoteException {
-        if (network.contains(node)) return;
+        if (network.contains(node)) {
+            return;
+        }
         network.add(node);
         this.transactions.addAll(node.getTransactions());
         node.addNode(this);
-        for (RemoteNodeInterface iremoteP2P : network) iremoteP2P.addNode(node);
-        if (listener != null) listener.onConect(node.getAdress());
+        for (RemoteNodeInterface iremoteP2P : network) {
+            iremoteP2P.addNode(node);
+        }
+        if (listener != null) {
+            listener.onConect(node.getAdress());
+        }
     }
 
     @Override
@@ -131,10 +163,9 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     }
 
     // ::::::::::: T R A N S A C T I O N S :::::::::::
-    
     /**
-     * CORRIGIDO: Recebe a String (Base64) da transação.
-     * Não tenta desencriptar, apenas guarda e propaga.
+     * CORRIGIDO: Recebe a String (Base64) da transação. Não tenta desencriptar,
+     * apenas guarda e propaga.
      */
     @Override
     public void addTransaction(String dataBase64) throws RemoteException {
@@ -142,17 +173,18 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         if (this.transactions.contains(dataBase64)) {
             return;
         }
-        
+
         // Guarda na lista local
         this.transactions.add(dataBase64);
-        
+
         // Propaga para a rede
         for (RemoteNodeInterface node : network) {
             try {
                 node.addTransaction(dataBase64);
-            } catch(Exception e) {} // Ignora erros de rede
+            } catch (Exception e) {
+            } // Ignora erros de rede
         }
-        
+
         // Avisa a GUI
         if (listener != null) {
             listener.onTransaction(dataBase64);
@@ -167,10 +199,11 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
     }
 
     // ... (Mantém Mine, StopMining, PropagateBlock iguais ao que corrigimos antes) ...
-    
     @Override
     public int mine(String message, int dificulty) throws RemoteException {
-        if (miner.isMining()) return 0;
+        if (miner.isMining()) {
+            return 0;
+        }
         miner.isWorking.set(true);
         // Sem ciclo for aqui (a GUI controla)
         return miner.mine(message, dificulty);
@@ -178,45 +211,104 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
     @Override
     public void stopMining(int nonce) throws RemoteException {
-        if (!miner.isMining()) return;
+        if (!miner.isMining()) {
+            return;
+        }
         miner.stopMining(nonce);
         // Sem ciclo for aqui
     }
-    
+
     // ... (Mantém getters do miner e propagateBlock iguais) ...
-    @Override public boolean isMining() throws RemoteException { return miner.isMining(); }
-    @Override public boolean isWinner() throws RemoteException { return miner.isWinner(); }
-    @Override public int getNonce() throws RemoteException { return miner.getNonce(); }
-    @Override public String getHash() throws RemoteException { return MinerDistibuted.getHash(miner.message+miner.getNonce()); }
+    @Override
+    public boolean isMining() throws RemoteException {
+        return miner.isMining();
+    }
+
+    @Override
+    public boolean isWinner() throws RemoteException {
+        return miner.isWinner();
+    }
+
+    @Override
+    public int getNonce() throws RemoteException {
+        return miner.getNonce();
+    }
+
+    @Override
+    public String getHash() throws RemoteException {
+        return MinerDistibuted.getHash(miner.message + miner.getNonce());
+    }
 
     @Override
     public void propagateBlock(byte[] blockData) throws RemoteException {
-        // ... (Use a versão corrigida que lhe dei na resposta anterior que limpa as transações) ...
-        // Vou resumir para caber:
-        try {
-            core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
-            core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
-            if (bc == null && newBlock.getID() == 0) bc = new core.BlockChain(newBlock);
-            if (bc != null && bc.getLastBlock().getID() >= newBlock.getID()) return;
+        // 1. Se estivermos a minerar e recebermos um bloco válido de fora, paramos.
+        if (miner.isMining()) {
+            miner.stopMining(-1);
+        }
 
-            bc.add(newBlock);
-            SaudeCerteira.SaudeWallet.updateWallets(newBlock);
+        // Lock para garantir que ninguém mexe na blockchain ao mesmo tempo
+        synchronized (activeSearches) { // Ou use um objeto específico para lock
+            try {
+                // 2. Converter bytes para Bloco
+                core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
+                
+                // 3. Carregar Blockchain do disco
+                core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
-            // LIMPEZA DE TRANSAÇÕES (Importante)
-            List<SaudeCerteira.SaudeTransaction> txsProcessadas = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
-            for (SaudeCerteira.SaudeTransaction t : txsProcessadas) {
-                byte[] tBytes = utils.Serializer.objectToByteArray(t);
-                String tString = java.util.Base64.getEncoder().encodeToString(tBytes);
-                this.transactions.remove(tString);
+                // Caso inicial (Blockchain vazia)
+                if (bc == null && newBlock.getID() == 0) {
+                    bc = new core.BlockChain(newBlock);
+                }
+                
+                // 4. VERIFICAÇÃO DE SEGURANÇA (Evita o erro "Invalid Block")
+                if (bc != null) {
+                    // Se já temos este bloco (ou um mais à frente), ignoramos
+                    if (bc.getLastBlock().getID() >= newBlock.getID()) {
+                        System.out.println("Bloco ignorado (já existe ou é antigo): " + newBlock.getID());
+                        return; 
+                    }
+                    // Se o hash anterior não bater certo, é um bloco órfão/inválido
+                    if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
+                        System.out.println("Bloco inválido (Hash anterior incorreto) - Cadeia pode ter mudado.");
+                        return;
+                    }
+                }
+
+                // 5. Adicionar à Blockchain
+                // O método .add() lança exceção se for inválido. Nós apanhamos o erro em baixo.
+                if (bc != null) {
+                    bc.add(newBlock); 
+                    // Salvar as carteiras (Saldos/Stock)
+                    SaudeCerteira.SaudeWallet.updateWallets(newBlock);
+                }
+
+                // 6. Limpar transações pendentes (Mempool)
+                List<SaudeCerteira.SaudeTransaction> mined = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
+                for (SaudeCerteira.SaudeTransaction t : mined) {
+                    byte[] tBytes = utils.Serializer.objectToByteArray(t);
+                    String tString = java.util.Base64.getEncoder().encodeToString(tBytes);
+                    this.transactions.remove(tString);
+                }
+
+                // 7. Notificar a GUI
+                if (listener != null) {
+                    listener.onTransaction("BlockReceived");
+                }
+
+                // 8. Propagar para o resto da rede (Gossip Protocol)
+                for (RemoteNodeInterface node : network) {
+                    try {
+                        node.propagateBlock(blockData);
+                    } catch (Exception ignore) {
+                        // Se um nó cair, ignoramos e continuamos para o próximo
+                    }
+                }
+
+            } catch (Exception e) {
+                // AQUI ESTÁ A CORREÇÃO PRINCIPAL:
+                // Se der erro (ex: Invalid Block), apenas fazemos print e NÃO lançamos erro fatal
+                System.out.println("Bloco rejeitado pela blockchain local: " + e.getMessage());
             }
-            
-            if (listener != null) listener.onTransaction("BlockReceived");
-            
-            for (RemoteNodeInterface node : network) {
-                try { node.propagateBlock(blockData); } catch (Exception e) {}
-            }
-        } catch (Exception e) {
-            System.out.println("Erro ao receber bloco: " + e.getMessage());
         }
     }
 }
