@@ -147,7 +147,7 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         }
         network.add(node);
         this.transactions.addAll(node.getTransactions());
-        
+
         // :::::::::: SINCRONIZAÇÃO DA BLOCKCHAIN (SYNC - CORRIGIDO) ::::::::::
         try {
             // 1. Pedir a blockchain do nó a que nos acabámos de ligar
@@ -157,25 +157,25 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             // 2. Se a dele for válida e maior que a minha (ou se eu não tiver nenhuma)
             if (remoteChain != null) {
                 boolean devoAtualizar = false;
-                
+
                 if (localChain == null) {
                     devoAtualizar = true; // Não tenho nada, aceito tudo
                 } else {
                     // CORREÇÃO: Comparar pelo ID do último bloco em vez de getSize()
                     int myHeight = localChain.getLastBlock().getID();
                     int remoteHeight = remoteChain.getLastBlock().getID();
-                    
+
                     if (remoteHeight > myHeight) {
                         devoAtualizar = true;
                     }
                 }
-                
+
                 if (devoAtualizar) {
                     System.out.println("Sincronizando: Recebida chain maior (Topo: " + remoteChain.getLastBlock().getID() + ").");
-                    
+
                     // 3. Guardar a nova chain no disco
                     remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
-                    
+
                     // 4. Avisar a GUI para recarregar tudo
                     if (listener != null) {
                         listener.onTransaction("BlockReceived"); // Isto força o refresh da GUI
@@ -189,7 +189,10 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
         node.addNode(this);
         for (RemoteNodeInterface iremoteP2P : network) {
-            try { iremoteP2P.addNode(node); } catch (Exception e) {}
+            try {
+                iremoteP2P.addNode(node);
+            } catch (Exception e) {
+            }
         }
         if (listener != null) {
             listener.onConect(node.getAdress());
@@ -280,6 +283,10 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
     @Override
     public void propagateBlock(byte[] blockData) throws RemoteException {
+        // 1. Parar mineração se recebermos um bloco válido
+        if (miner.isMining()) {
+            miner.stopMining(-1);
+        }
 
         synchronized (activeSearches) {
             try {
@@ -288,33 +295,31 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
                 boolean isNewBlock = true;
 
-                // 2. Verificar se o bloco já existe na chain carregada
+                // 2. Verificar o estado da blockchain
                 if (bc != null) {
                     if (bc.getLastBlock().getID() == newBlock.getID()) {
-                        // O bloco já está no disco (gravado por outro nó local ou por nós antes)
-                        // Não precisamos de adicionar, mas PRECISAMOS de atualizar a GUI/Carteira
+                        // O bloco já existe (recebido de outro nó ou lido do disco).
+                        // Marcamos como não-novo para não readicionar, mas deixamos continuar para ATUALIZAR a carteira.
                         isNewBlock = false;
                     } else if (bc.getLastBlock().getID() > newBlock.getID()) {
-                        return; // Bloco velho, ignorar completamente
-                    }
-                } else if (newBlock.getID() == 0) {
-                    bc = new core.BlockChain(newBlock);
-                }
-
-                // 3. Se for novo, adicionamos. Se já existir, apenas usamos os dados para atualizar.
-                if (isNewBlock && bc != null) {
-                    // Verifica hash anterior para evitar "Invalid Block"
-                    if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
-                        System.out.println("Bloco órfão recebido. Ignorado.");
+                        return; // Bloco muito antigo, ignorar.
+                    } else if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
+                        System.out.println("Bloco órfão/inválido recebido. Ignorado.");
                         return;
                     }
+                } else if (newBlock.getID() == 0) {
+                    bc = new core.BlockChain(newBlock); // Criar nova cadeia se for Genesis
+                }
+
+                // 3. Adicionar à Blockchain se for novo
+                if (isNewBlock && bc != null) {
                     bc.add(newBlock);
                 }
 
-                // 4. ATUALIZAÇÃO CRÍTICA: Atualizar carteiras e GUI mesmo que o bloco já existisse no disco
+                // 4. ATUALIZAR CARTEIRAS (Sempre, mesmo que o bloco já existisse)
                 SaudeCerteira.SaudeWallet.updateWallets(newBlock);
 
-                // 5. Limpar transações da lista pendente
+                // 5. Limpar transações processadas da lista visual
                 List<SaudeCerteira.SaudeTransaction> mined = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
                 for (SaudeCerteira.SaudeTransaction t : mined) {
                     byte[] tBytes = utils.Serializer.objectToByteArray(t);
@@ -322,12 +327,12 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                     this.transactions.remove(tString);
                 }
 
-                // 6. Avisar a GUI para limpar o texto e mostrar saldo
+                // 6. Notificar GUI
                 if (listener != null) {
                     listener.onTransaction("BlockReceived");
                 }
 
-                // 7. Propagar para a rede (apenas se for novo para nós, para evitar loops infinitos excessivos)
+                // 7. Propagar para a rede (apenas se foi novidade para nós)
                 if (isNewBlock) {
                     for (RemoteNodeInterface node : network) {
                         try {
@@ -338,11 +343,12 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                 }
 
             } catch (Exception e) {
-                System.out.println("Erro ao processar bloco: " + e.getMessage());
+                // Log de erro sem crashar
+                System.out.println("Nota no processamento do bloco: " + e.getMessage());
             }
         }
     }
-    
+
     // [NOVO] Implementação do método de sync
     @Override
     public core.BlockChain getBlockchain() throws RemoteException {
@@ -352,5 +358,5 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             return null; // Se não tiver blockchain, devolve null
         }
     }
-    
+
 }

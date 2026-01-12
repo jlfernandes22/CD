@@ -737,14 +737,17 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     }//GEN-LAST:event_btConnectActionPerformed
 
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
-        // [CORREÇÃO] Desativar botão para impedir criação de múltiplas threads
-        btStartMinig.setEnabled(false);
-
-        try {
+        // [CORREÇÃO] Desativar botão para impedir criação de múltiplas threads e erros de "Invalid Block"
+         btStartMinig.setEnabled(false);
+         
+         try {
             // 1. Carregar Blockchain Local
             core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
-
-            int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 1;
+            
+            // [CORREÇÃO CRÍTICA] Se a blockchain for null, o primeiro bloco tem de ser 0, não 1.
+            int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 0;
+            
+            // Hash anterior (0000... se for o primeiro bloco)
             byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
 
             // 2. Filtrar Transações
@@ -755,38 +758,32 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
                 try {
                     SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
                     if (bc != null && bc.existsTransaction(t.getSignature())) {
-                        continue; // Ignora duplicados
+                        continue; 
                     }
                     txsReais.add(t);
-                } catch (Exception e) {
-                }
+                } catch (Exception e) {}
             }
 
             if (txsReais.isEmpty()) {
                 txtLstTransactions.setText("");
                 JOptionPane.showMessageDialog(this, "Sem transações válidas para minerar.");
-                btStartMinig.setEnabled(true); // Reativar botão se falhar
+                btStartMinig.setEnabled(true);
                 return;
             }
 
-            // 3. Criar Bloco Candidato
+            // 3. Criar Bloco
             int dif = (int) spZeros.getValue();
             this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
 
-            // 4. Iniciar Mineração em Thread
+            // 4. Iniciar Mineração
             byte[] headerBytes = this.blocoCandidato.getHeaderData();
             String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
-
+            
             new Thread(() -> {
                 try {
-                    // Inicia mineração local
                     myremoteObject.mine(headerParaMinar, dif);
-                    // Manda a rede minerar também
                     for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
-                        try {
-                            node.mine(headerParaMinar, dif);
-                        } catch (Exception e) {
-                        }
+                        try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -796,7 +793,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
-            btStartMinig.setEnabled(true); // Reativar botão em caso de erro
+            btStartMinig.setEnabled(true);
         }
     }//GEN-LAST:event_btStartMinigActionPerformed
 
@@ -1012,44 +1009,41 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         SwingUtilities.invokeLater(() -> {
             try {
                 imgWinner.setVisible(true);
-                btStartMinig.setEnabled(true); // [CORREÇÃO] Reativar botão
+                btStartMinig.setEnabled(true); // Reativar botão
 
-                // 1. Mandar parar todos os mineradores
+                // 1. Parar mineradores
                 myremoteObject.stopMining(nonce);
-                List<RemoteNodeInterface> rede = myremoteObject.getNetwork();
-                for (RemoteNodeInterface node : rede) {
-                    try {
-                        node.stopMining(nonce);
-                    } catch (Exception e) {
-                    }
+                for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
+                    try { node.stopMining(nonce); } catch (Exception e) {}
                 }
 
                 // 2. Validar e Propagar
                 if (this.blocoCandidato != null) {
-                    // [CORREÇÃO CRÍTICA] Verificar se a blockchain já mudou entretanto
+                    // Carrega a blockchain para verificar consistência
                     core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
-                    byte[] hashAtualDisco = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
-
-                    // Se o hash anterior do meu bloco não for igual ao último da chain, perdi a corrida
-                    if (!java.util.Arrays.equals(this.blocoCandidato.getPreviousHash(), hashAtualDisco)) {
-                        JOptionPane.showMessageDialog(this, "Outro nó minou primeiro. O seu bloco foi descartado.");
-                        this.blocoCandidato = null;
-                        return;
+                    
+                    // Se a blockchain existe, validar se o nosso bloco liga corretamente ao último
+                    if (bc != null && bc.getLastBlock() != null) {
+                        byte[] hashAtual = bc.getLastBlock().getCurrentHash();
+                        if (!java.util.Arrays.equals(this.blocoCandidato.getPreviousHash(), hashAtual)) {
+                            JOptionPane.showMessageDialog(this, "A blockchain mudou enquanto minerava. Bloco descartado.");
+                            this.blocoCandidato = null;
+                            return;
+                        }
                     }
 
-                    // Finalizar bloco
+                    // Se for válido, define o nonce e propaga
                     this.blocoCandidato.setNonce(nonce);
                     byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
-
-                    // Propagar
+                    
                     myremoteObject.propagateBlock(blockBytes);
-
-                    // [CORREÇÃO] Atualizar GUI imediatamente
+                    
+                    // Limpar GUI
                     txtLstTransactions.setText("");
-                    carregarInventarioSNS24(); // Atualiza saldo/receitas
-
+                    carregarInventarioSNS24(); 
+                    
                     this.blocoCandidato = null;
-                    JOptionPane.showMessageDialog(this, "Bloco Minado e Propagado!");
+                    JOptionPane.showMessageDialog(this, "Bloco Minado e Guardado com Sucesso!");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
