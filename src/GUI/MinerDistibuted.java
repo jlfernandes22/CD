@@ -156,10 +156,11 @@ public class MinerDistibuted {
 
     public static String getHash(String msg) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA3-256");
+            // CORREÇÃO: Usar SHA-256 para ser compatível com a classe Block
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
             md.update(msg.getBytes());
-            return Base64.getEncoder().encodeToString(md.digest());
-        } catch (NoSuchAlgorithmException ex) {
+            return java.util.Base64.getEncoder().encodeToString(md.digest());
+        } catch (java.security.NoSuchAlgorithmException ex) {
             return "ERROR";
         }
     }

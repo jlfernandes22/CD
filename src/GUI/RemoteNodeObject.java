@@ -147,18 +147,18 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         }
         network.add(node);
         this.transactions.addAll(node.getTransactions());
-        
+
         // :::::::::: SYNC: SINCRONIZAÇÃO DA BLOCKCHAIN AO CONECTAR ::::::::::
         try {
             System.out.println("A iniciar sincronização com " + node.getAdress());
-            
+
             // 1. Pedir a blockchain do nó remoto
             core.BlockChain remoteChain = node.getBlockchain();
             core.BlockChain localChain = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
             // 2. Decidir se devemos atualizar (Se a dele for maior ou se eu não tiver nada)
             boolean devoAtualizar = false;
-            
+
             if (remoteChain != null) {
                 if (localChain == null) {
                     devoAtualizar = true; // Sou novo, aceito tudo
@@ -173,25 +173,25 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             // 3. Aplicar a atualização
             if (devoAtualizar) {
                 System.out.println("SYNC: Recebida blockchain maior. A atualizar...");
-                
+
                 // Gravar no disco
                 remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
-                
+
                 // Atualizar Saldos e Carteiras com a nova chain
                 // (Percorre todos os blocos para reconstruir o estado das carteiras)
                 core.Block current = remoteChain.getLastBlock();
                 // Nota: O ideal seria reconstruir desde o genesis, mas para este projeto, 
                 // garantir que o último bloco atualiza o estado pode ser suficiente se o SaudeWallet for robusto.
                 // Mas para garantir, podemos forçar um reload na GUI.
-                
+
                 if (listener != null) {
                     // Envia sinal para a GUI recarregar o inventário visualmente
-                    listener.onTransaction("BlockReceived"); 
+                    listener.onTransaction("BlockReceived");
                 }
             } else {
                 System.out.println("SYNC: A minha blockchain já está atualizada.");
             }
-            
+
         } catch (Exception e) {
             System.err.println("Erro no SYNC: " + e.getMessage());
             e.printStackTrace();
@@ -200,7 +200,10 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
         node.addNode(this);
         for (RemoteNodeInterface iremoteP2P : network) {
-            try { iremoteP2P.addNode(node); } catch (Exception e) {}
+            try {
+                iremoteP2P.addNode(node);
+            } catch (Exception e) {
+            }
         }
         if (listener != null) {
             listener.onConect(node.getAdress());
