@@ -14,7 +14,7 @@ import javax.swing.JOptionPane;
  * @author jlfernandes
  */
 public class JanelaLogin extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(JanelaLogin.class.getName());
 
     /**
@@ -167,42 +167,35 @@ public class JanelaLogin extends javax.swing.JFrame {
     }//GEN-LAST:event_UtilizadorFieldActionPerformed
 
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
-      try {
-        String name = UtilizadorField.getText();
-        String password = PasswordField.getText();
+        try {
+            String name = UtilizadorField.getText();
+            String password = PasswordField.getText();
 
+            SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
 
-        SaudeCerteira.User loggedUser = SaudeCerteira.User.login(name, password);
-          
-        SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
-            
-        //janelaPrincipal.setLocationRelativeTo(null);
-        System.out.println(t.toString());
-           
-            
-        SaudeCerteira.SaudeWallet wallet = SaudeWallet.load(name);
+            SaudeCerteira.SaudeWallet t = SaudeWallet.load(name);
 
-        // 3. Abre a MainGUI passando o utilizador logado
-        MainGUI janelaPrincipal = new MainGUI(loggedUser);
+            //janelaPrincipal.setLocationRelativeTo(null);
+            System.out.println(t.toString());
 
-        // Se tiveres uma variável pública para o nome, podes manter
-        janelaPrincipal.nomeUser = name; 
+            // 3. Abre a MainGUI passando o utilizador logado
+            MainGUI janelaPrincipal = new MainGUI(loggedUser);
 
-        janelaPrincipal.setVisible(true);
-        this.dispose();
+            janelaPrincipal.setVisible(true);
+            this.dispose();
 
-    } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this, "Erro no Login: " + ex.getMessage());
-    }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro no Login: " + ex.getMessage());
+        }
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
-       
+
         JanelaRegister janela = new JanelaRegister();
         janela.setLocationRelativeTo(null);
         janela.setVisible(true);
         this.dispose();
-        
+
     }//GEN-LAST:event_RegistarButtonActionPerformed
 
     private void PasswordFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PasswordFieldActionPerformed
