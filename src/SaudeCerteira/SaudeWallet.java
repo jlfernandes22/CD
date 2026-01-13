@@ -125,8 +125,7 @@ public class SaudeWallet implements Serializable {
 
     /**
      * Gera o relatório visual (SNS24) com Stock Infinito para médicos
-     */
-    public String getInventarioDescodificado(PrivateKey minhaChavePrivada) {
+     */public String getInventarioDescodificado(PrivateKey minhaChavePrivada) {
         Map<String, Integer> inventario = new HashMap<>();
         StringBuilder relatorio = new StringBuilder();
 
@@ -137,7 +136,6 @@ public class SaudeWallet implements Serializable {
             if (userFile.exists()) {
                 try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(new java.io.FileInputStream(userFile))) {
                     User u = (User) in.readObject();
-                    // Obtém o papel: "Médico", "Farmácia" ou "Utente"
                     if (u.getRole() != null) {
                         role = u.getRole();
                     }
@@ -160,21 +158,15 @@ public class SaudeWallet implements Serializable {
                     String medicamento = dados[1];
 
                     // CASO A: RECEBI -> SOMA SEMPRE
-                    // Utentes recebem do Médico (Ganham receita)
-                    // Farmácias recebem do Utente (Ganham prova de aviamento)
+                    // (Utente recebe do Médico) ou (Farmácia recebe do Utente)
                     if (t.getTxtReceiver().equals(this.user)) {
                         int atual = inventario.getOrDefault(medicamento, 0);
                         inventario.put(medicamento, atual + qtd);
                     }
                     
-                    // CASO B: ENVIEI -> SUBTRAI? (Depende do Role)
                     if (t.getTxtSender().equals(this.user)) {
                         
-                        if ("Médico".equals(role)) {
-                            // Médicos têm stock Infinito: NÃO subtrai nada ao enviar.
-                        } 
-                        else {
-                            // Utentes (ao aviar) e Farmácias (se transferirem) gastam stock.
+                        if ("Utente".equals(role)) {
                             int atual = inventario.getOrDefault(medicamento, 0);
                             inventario.put(medicamento, atual - qtd);
                         }
@@ -190,7 +182,7 @@ public class SaudeWallet implements Serializable {
         if ("Médico".equals(role)) {
             relatorio.append(" [MODO CLÍNICO: Emissão Ilimitada]\n");
         } else if ("Farmácia".equals(role)) {
-            relatorio.append(" [MODO FARMÁCIA: Receitas Aviadas]\n");
+            relatorio.append(" [MODO FARMÁCIA: Receitas Aviadas/Stock]\n");
         }
 
         if (inventario.isEmpty()) {
@@ -198,7 +190,7 @@ public class SaudeWallet implements Serializable {
         } else {
             relatorio.append("--- Histórico de Medicamentos ---\n");
             for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
-                // Mostra apenas se quantidade > 0 (opcional)
+                // Se quiser mostrar mesmo quando é 0 (para provar que enviou), remova o if
                 if (entry.getValue() > 0) {
                     relatorio.append(" 💊 ").append(entry.getKey())
                              .append(": ").append(entry.getValue()).append(" un.\n");
