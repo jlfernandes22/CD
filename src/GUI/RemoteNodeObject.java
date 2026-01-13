@@ -299,6 +299,10 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
             miner.stopMining(-1);
         }
 
+        // Variável para saber se devemos enviar aos vizinhos
+        boolean shouldPropagate = false;
+
+        // :::::::: FASE 1: ATUALIZAÇÃO LOCAL (COM LOCK) ::::::::
         synchronized (activeSearches) {
             try {
                 core.Block newBlock = (core.Block) utils.Serializer.byteArrayToObject(blockData);
@@ -306,31 +310,30 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
 
                 boolean isNewBlock = true;
 
-                // 2. Verificar o estado da blockchain
+                // Verificar o estado da blockchain
                 if (bc != null) {
                     if (bc.getLastBlock().getID() == newBlock.getID()) {
-                        // O bloco já existe (recebido de outro nó ou lido do disco).
-                        // Marcamos como não-novo para não readicionar, mas deixamos continuar para ATUALIZAR a carteira.
-                        isNewBlock = false;
+                        isNewBlock = false; 
                     } else if (bc.getLastBlock().getID() > newBlock.getID()) {
-                        return; // Bloco muito antigo, ignorar.
+                        return; // Bloco velho, sai logo
                     } else if (!java.util.Arrays.equals(bc.getLastBlock().getCurrentHash(), newBlock.getPreviousHash())) {
                         System.out.println("Bloco órfão/inválido recebido. Ignorado.");
                         return;
                     }
                 } else if (newBlock.getID() == 0) {
-                    bc = new core.BlockChain(newBlock); // Criar nova cadeia se for Genesis
+                     bc = new core.BlockChain(newBlock);
                 }
 
-                // 3. Adicionar à Blockchain se for novo
+                // Adicionar à Blockchain se for novo
                 if (isNewBlock && bc != null) {
                     bc.add(newBlock);
+                    shouldPropagate = true; // Define flag para enviar fora do lock
                 }
 
-                // 4. ATUALIZAR CARTEIRAS (Sempre, mesmo que o bloco já existisse)
+                // ATUALIZAR CARTEIRAS (Sempre)
                 SaudeCerteira.SaudeWallet.updateWallets(newBlock);
 
-                // 5. Limpar transações processadas da lista visual
+                // Limpar transações
                 List<SaudeCerteira.SaudeTransaction> mined = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
                 for (SaudeCerteira.SaudeTransaction t : mined) {
                     byte[] tBytes = utils.Serializer.objectToByteArray(t);
@@ -338,25 +341,31 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                     this.transactions.remove(tString);
                 }
 
-                // 6. Notificar GUI
+                // Notificar GUI
                 if (listener != null) {
                     listener.onTransaction("BlockReceived");
                 }
 
-                // 7. Propagar para a rede (apenas se foi novidade para nós)
-                if (isNewBlock) {
-                    for (RemoteNodeInterface node : network) {
-                        try {
-                            node.propagateBlock(blockData);
-                        } catch (Exception ignore) {
-                        }
+            } catch (Exception e) {
+                System.out.println("Nota no processamento do bloco: " + e.getMessage());
+                return; // Se deu erro, não propaga
+            }
+        } // <--- FIM DO SYNCHRONIZED (Lock libertado aqui)
+
+        
+        // :::::::: FASE 2: PROPAGAÇÃO REMOTA (SEM LOCK) ::::::::
+        // Isto impede que o RMI congele à espera de resposta
+        if (shouldPropagate) {
+            new Thread(() -> {
+                for (RemoteNodeInterface node : network) {
+                    try {
+                        // Envia e não bloqueia o sistema principal
+                        node.propagateBlock(blockData);
+                    } catch (Exception ignore) {
+                        // Node offline, ignorar
                     }
                 }
-
-            } catch (Exception e) {
-                // Log de erro sem crashar
-                System.out.println("Nota no processamento do bloco: " + e.getMessage());
-            }
+            }).start();
         }
     }
 
