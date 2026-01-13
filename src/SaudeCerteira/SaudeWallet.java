@@ -17,10 +17,11 @@ import utils.FolderUtils;
 
 /**
  * Carteira de Saúde - Gere Histórico e Inventário Seguro
+ *
  * @author manso - computer
  */
 public class SaudeWallet implements Serializable {
-    
+
     public static final String FILE_PATH = "data_wallet/";
 
     String user; // Nome do utilizador
@@ -28,7 +29,6 @@ public class SaudeWallet implements Serializable {
 
     // --- REMOVIDO: drugInventory (Obsoleto com encriptação) ---
     // Map<String, Integer> drugInventory; 
-
     private SaudeWallet(String user) {
         this.user = user;
         this.transactions = new ArrayList<>();
@@ -36,13 +36,13 @@ public class SaudeWallet implements Serializable {
     }
 
     // ... (Métodos create, save, load mantêm-se IGUAIS) ...
-    public static SaudeWallet create(String name, String password, String dataNascimento, 
-                                String identidadeCC, String numeroUtente, String sexo,
-                                String paisnacionalidade, String naturalidade, String morada,
-                                String NISS, String telemovel, String role, String unidadeSaude) throws Exception { 
-       return create(User.register(name, password, dataNascimento, identidadeCC, 
-                                    numeroUtente, sexo, paisnacionalidade, naturalidade, morada, 
-                                    NISS, telemovel, role, unidadeSaude));
+    public static SaudeWallet create(String name, String password, String dataNascimento,
+            String identidadeCC, String numeroUtente, String sexo,
+            String paisnacionalidade, String naturalidade, String morada,
+            String NISS, String telemovel, String role, String unidadeSaude) throws Exception {
+        return create(User.register(name, password, dataNascimento, identidadeCC,
+                numeroUtente, sexo, paisnacionalidade, naturalidade, morada,
+                NISS, telemovel, role, unidadeSaude));
     }
 
     public static SaudeWallet create(User newUSer) throws Exception {
@@ -52,7 +52,9 @@ public class SaudeWallet implements Serializable {
     }
 
     public void save() throws Exception {
-        if (!(new File(FILE_PATH).exists())) new File(FILE_PATH).mkdirs();
+        if (!(new File(FILE_PATH).exists())) {
+            new File(FILE_PATH).mkdirs();
+        }
         String fileName = FILE_PATH + user + ".wlt";
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(fileName))) {
             out.writeObject(this);
@@ -73,7 +75,7 @@ public class SaudeWallet implements Serializable {
         // 1. VERIFICAR DUPLICADOS
         for (WalletTransaction w : this.transactions) {
             if (java.util.Arrays.equals(w.getTransaction().getSignature(), trans.getTransaction().getSignature())) {
-                return; 
+                return;
             }
         }
         // 2. GUARDAR
@@ -95,17 +97,19 @@ public class SaudeWallet implements Serializable {
         try {
             SaudeWallet sender = load(t.getTransaction().getTxtSender());
             sender.add(t);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         try {
             SaudeWallet receiver = load(t.getTransaction().getTxtReceiver());
             receiver.add(t);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     /**
-     * [CORRIGIDO] toString já não tenta imprimir o inventário vazio.
-     * Mostra apenas resumo técnico. O inventário real é visto na GUI.
+     * [CORRIGIDO] toString já não tenta imprimir o inventário vazio. Mostra
+     * apenas resumo técnico. O inventário real é visto na GUI.
      */
     @Override
     public String toString() {
@@ -113,24 +117,29 @@ public class SaudeWallet implements Serializable {
         txt.append("\n=== HISTÓRICO DE BLOCOS (ENCRIPTADO) ===\n");
         for (WalletTransaction wt : transactions) {
             txt.append(wt.getTransaction().toString())
-               .append(" [Block ").append(wt.getBlockID()).append("]\n");
+                    .append(" [Block ").append(wt.getBlockID()).append("]\n");
         }
         return txt.toString().trim();
     }
 
-    public String getUser() { return user; }
-    public List<WalletTransaction> getTransactions() { return transactions; }
+    public String getUser() {
+        return user;
+    }
+
+    public List<WalletTransaction> getTransactions() {
+        return transactions;
+    }
 
     // --- REMOVIDO: getDrugInventory (Obsoleto) ---
-
     /**
      * Gera o relatório visual (SNS24) com Stock Infinito para médicos
-     */public String getInventarioDescodificado(PrivateKey minhaChavePrivada) {
+     */
+    public String getInventarioDescodificado(PrivateKey minhaChavePrivada) {
         Map<String, Integer> inventario = new HashMap<>();
         StringBuilder relatorio = new StringBuilder();
 
-        // 1. Carregar o Role (Papel) do utilizador a partir do disco
-        String role = "Utente"; // Valor predefinido
+        // 1. Carregar o Role
+        String role = "Utente";
         try {
             java.io.File userFile = new java.io.File("data_user/" + this.user + ".user");
             if (userFile.exists()) {
@@ -142,59 +151,81 @@ public class SaudeWallet implements Serializable {
                 }
             }
         } catch (Exception e) {
-            // Se der erro, mantém-se como "Utente" por segurança
         }
 
-        // 2. Percorrer Transações para calcular saldo
+        System.out.println("--- DEBUG INVENTÁRIO (Sou: " + this.user + " | Role: " + role + ") ---");
+
+        // 2. Percorrer Transações
         for (WalletTransaction wt : transactions) {
             SaudeTransaction t = wt.getTransaction();
-            
-            // Tenta abrir o envelope digital com a chave privada
-            String[] dados = t.desencriptarConteudo(minhaChavePrivada);
-            
-            if (dados != null && dados.length == 2) {
-                try {
-                    int qtd = Integer.parseInt(dados[0]);
-                    String medicamento = dados[1];
 
-                    // CASO A: RECEBI -> SOMA SEMPRE
-                    // (Utente recebe do Médico) ou (Farmácia recebe do Utente)
-                    if (t.getTxtReceiver().equals(this.user)) {
+            // Tenta abrir o envelope
+            String[] dados = t.desencriptarConteudo(minhaChavePrivada);
+
+            // LOGICA PARA QUEM RECEBE (Funciona bem)
+            if (t.getTxtReceiver().equals(this.user)) {
+                if (dados != null && dados.length == 2) {
+                    try {
+                        int qtd = Integer.parseInt(dados[0]);
+                        String medicamento = dados[1];
                         int atual = inventario.getOrDefault(medicamento, 0);
                         inventario.put(medicamento, atual + qtd);
+                    } catch (Exception e) {
                     }
-                    
-                    if (t.getTxtSender().equals(this.user)) {
-                        
-                        if ("Utente".equals(role)) {
-                            int atual = inventario.getOrDefault(medicamento, 0);
-                            inventario.put(medicamento, atual - qtd);
-                        }
+                }
+            }
+
+            // LOGICA PARA QUEM ENVIA (Onde está o problema)
+            if (t.getTxtSender().equals(this.user)) {
+                if ("Médico".equals(role)) {
+                    continue; // Médicos ignoram
+                }
+                // Se conseguimos desencriptar (o que é raro para o remetente em RSA simples)
+                if (dados != null && dados.length == 2) {
+                    try {
+                        int qtd = Integer.parseInt(dados[0]);
+                        String medicamento = dados[1];
+                        int atual = inventario.getOrDefault(medicamento, 0);
+                        inventario.put(medicamento, atual - qtd);
+                        System.out.println("-> Subtraí " + qtd + " de " + medicamento);
+                    } catch (Exception e) {
                     }
-                    
-                } catch (Exception e) {}
+                } else {
+                    // SE ENTRAR AQUI, É O PROBLEMA DO ENVELOPE
+                    System.out.println("ERRO: Enviei uma transação mas não consigo ler o conteúdo (Criptografia).");
+
+                    // --- TENTATIVA DE CORREÇÃO (PLAN B) ---
+                    // Se a classe SaudeTransaction tiver os campos acessíveis sem encriptação
+                    // ou se guardou a descrição em algum lado.
+                    // Se não tiver acesso, infelizmente o sistema criptográfico impede a subtração visual.
+                    // Tente ver se consegue obter a informação de outra forma. 
+                    // Se não conseguir, assumimos 1 unidade genérica ou tentamos ler campos públicos:
+                    try {
+                        // Se a sua classe SaudeTransaction tiver um getDescricao() público ou similar, use-o aqui
+                        // Exemplo (apenas se existir):
+                        // String medicamento = t.getMedicamentoPublico(); 
+                        // int qtd = t.getQuantidadePublica();
+
+                        // Se não existir, não há como saber o que subtrair matematicamente.
+                    } catch (Exception ex) {
+                    }
+                }
             }
         }
 
-        // 3. Construir o Relatório Personalizado
+        // ... (construção do relatório mantém-se igual) ...
         relatorio.append("\n=== 🏥 CARTEIRA DIGITAL (").append(role.toUpperCase()).append(") ===\n");
-        
         if ("Médico".equals(role)) {
-            relatorio.append(" [MODO CLÍNICO: Emissão Ilimitada]\n");
-        } else if ("Farmácia".equals(role)) {
-            relatorio.append(" [MODO FARMÁCIA: Receitas Aviadas/Stock]\n");
+            relatorio.append(" [MODO CLÍNICO]\n");
+        } else if ("Farmacêutico".equals(role)) {
+            relatorio.append(" [MODO FARMÁCIA]\n");
         }
 
         if (inventario.isEmpty()) {
             relatorio.append(" (Sem registos)\n");
         } else {
-            relatorio.append("--- Histórico de Medicamentos ---\n");
             for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
-                // Se quiser mostrar mesmo quando é 0 (para provar que enviou), remova o if
-                if (entry.getValue() > 0) {
-                    relatorio.append(" 💊 ").append(entry.getKey())
-                             .append(": ").append(entry.getValue()).append(" un.\n");
-                }
+                relatorio.append(" 💊 ").append(entry.getKey()).append(": ").append(entry.getValue()).append(" un.\n");
             }
         }
         relatorio.append("====================================\n");
@@ -202,18 +233,18 @@ public class SaudeWallet implements Serializable {
     }
 
     public static BlockChain restartSaudeCerteira() throws Exception {
-        FolderUtils.cleanFolder(FILE_PATH, true);           
-        FolderUtils.cleanFolder("data_user/", true);        
-        FolderUtils.cleanFolder("data_blocks/", true);      
+        FolderUtils.cleanFolder(FILE_PATH, true);
+        FolderUtils.cleanFolder("data_user/", true);
+        FolderUtils.cleanFolder("data_blocks/", true);
 
         User.deleteAllUsers();
         BlockChain.deleteAllBlocks();
-        
+
         // Criar Utilizadores
         SaudeWallet.create("Master", "123qwe", "01/01/1980", "111", "111", "M", "PT", "Tomar", "Hospital", "111", "911", "Médico", "Hospital Central");
         SaudeWallet.create("System", "123qwe", "01/01/1980", "222", "222", "M", "PT", "Server", "Cloud", "222", "922", "Farmacêutico", "System Root");
         SaudeWallet.create("aa", "aa", "01/01/2000", "000", "000", "M", "PT", "Lisboa", "Rua A", "000", "900", "Utente", "Clínica A");
-        
+
         // Criar Bloco Genesis
         // Nota: Com stock infinito, esta transação é opcional, mas serve para testar o sistema.
         ArrayList<SaudeTransaction> data = new ArrayList<>();
@@ -221,17 +252,17 @@ public class SaudeWallet implements Serializable {
         User uSystem = User.login("System", "123qwe");
         t.sign(uSystem.getPrivateKey());
         data.add(t);
-        
-        Block genesis = new Block(0, new byte[32], 3, data); 
+
+        Block genesis = new Block(0, new byte[32], 3, data);
         genesis.mine();
-        
+
         BlockChain blockchain = new BlockChain(genesis);
         WalletTransaction w = new WalletTransaction(t, genesis.getData().getProof(t), 0);
         SaudeWallet.updateWallets(w);
-        
+
         return blockchain;
     }
-    
+
     public PrivateKey getPrivateKey(String nome) throws Exception {
         User user = User.login(nome);
         return user.getPrivateKey();

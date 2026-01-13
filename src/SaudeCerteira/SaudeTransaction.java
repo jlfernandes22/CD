@@ -17,9 +17,12 @@ public class SaudeTransaction implements Serializable {
     byte[] signature;
     long timestamp;
 
-    // --- O SEU DIAGRAMA (Híbrido) ---
-    private byte[] dadosEncriptados;    // A Receita (Encriptada com AES)
-    private byte[] chaveAesEncriptada;  // A Chave AES (Encriptada com RSA Pública do Utente)
+    // --- SEGURANÇA (ENVELOPE DUPLO) ---
+    private byte[] dadosEncriptados;    // A Receita (Trancada com AES)
+    
+    // As Chaves do Envelope (A mesma chave AES, trancada para duas pessoas diferentes)
+    private byte[] chaveAesReceiver;    // Cópia para o Destinatário (Abrir com RSA do Destino)
+    private byte[] chaveAesSender;      // [NOVO] Cópia para o Remetente (Abrir com RSA do Remetente)
 
     public SaudeTransaction(String senderName, String receiverName, int qtd, String nomeMedicamento) throws Exception {
         this.txtSender = senderName;
@@ -32,17 +35,20 @@ public class SaudeTransaction implements Serializable {
         this.sender = uSender.getPublicKey();
         this.receiver = uReceiver.getPublicKey();
 
-        // --- PASSO 1: GERAR CHAVE ALEATÓRIA AES ---
-        // Criamos uma chave descartável só para esta receita
+        // --- PASSO 1: GERAR CHAVE ALEATÓRIA AES (Session Key) ---
         Key sessionKey = SecurityUtils.generateAESKey(256);
 
         // --- PASSO 2: ENCRIPTAR DADOS COM AES ---
         String segredo = qtd + ":" + nomeMedicamento;
         this.dadosEncriptados = SecurityUtils.encrypt(segredo.getBytes(), sessionKey);
 
-        // --- PASSO 3: ENCRIPTAR A CHAVE AES COM A RSA DO UTENTE ---
-        // Isto corresponde à seta do seu desenho: "obter a chave aes que virá encriptada com a sua chave pública"
-        this.chaveAesEncriptada = SecurityUtils.encrypt(sessionKey.getEncoded(), this.receiver);
+        // --- PASSO 3: CRIAR OS DOIS ENVELOPES ---
+        
+        // Cópia 1: Para o Destinatário (Como já tinha)
+        this.chaveAesReceiver = SecurityUtils.encrypt(sessionKey.getEncoded(), this.receiver);
+        
+        // Cópia 2: Para o Remetente (NOVO - Para conseguir ler o histórico e descontar stock)
+        this.chaveAesSender = SecurityUtils.encrypt(sessionKey.getEncoded(), this.sender);
     }
 
     public void sign(PrivateKey privKey) throws Exception {
@@ -50,33 +56,46 @@ public class SaudeTransaction implements Serializable {
         byte[] allData = Utils.concatenate(this.sender.getEncoded(), this.receiver.getEncoded());
         allData = Utils.concatenate(allData, Utils.longToBytes(timestamp));
         allData = Utils.concatenate(allData, dadosEncriptados);
-        allData = Utils.concatenate(allData, chaveAesEncriptada);
+        
+        // Assinar ambos os envelopes
+        allData = Utils.concatenate(allData, chaveAesReceiver);
+        allData = Utils.concatenate(allData, chaveAesSender);
         
         this.signature = SecurityUtils.sign(allData, privKey);
     }
 
     /**
-     * O Utente usa este método para ler a receita.
-     * Recebe a Chave Privada RSA dele para "abrir o envelope" da chave AES.
+     * Tenta abrir o envelope.
+     * Agora é inteligente: Tenta abrir como Destinatário OU como Remetente.
      */
     public String[] desencriptarConteudo(PrivateKey minhaChavePrivadaRSA) {
+        byte[] aesKeyBytes = null;
+
+        // TENTATIVA 1: Sou o Destinatário?
         try {
-            // 1. Destrancar a Chave AES usando a minha Private Key (RSA)
-            byte[] aesKeyBytes = SecurityUtils.decrypt(this.chaveAesEncriptada, minhaChavePrivadaRSA);
-            
-            // Reconstruir o objeto Key AES
+            aesKeyBytes = SecurityUtils.decrypt(this.chaveAesReceiver, minhaChavePrivadaRSA);
+        } catch (Exception e) {
+            // Se falhar, não sou o destinatário.
+        }
+
+        // TENTATIVA 2: Sou o Remetente? (Se a tentativa 1 falhou)
+        if (aesKeyBytes == null) {
+            try {
+                aesKeyBytes = SecurityUtils.decrypt(this.chaveAesSender, minhaChavePrivadaRSA);
+            } catch (Exception e) {
+                // Se falhar também, não sou ninguém autorizado.
+                return null;
+            }
+        }
+
+        // Se chegámos aqui, temos a chave AES! Vamos ler a receita.
+        try {
             Key sessionKey = SecurityUtils.getAESKey(aesKeyBytes);
-            
-            // 2. Destrancar a Receita usando a Chave AES recuperada
             byte[] rawData = SecurityUtils.decrypt(this.dadosEncriptados, sessionKey);
-            
             String texto = new String(rawData); // Ex: "10:Ben-u-ron"
             return texto.split(":");
-            
         } catch (Exception e) {
-            // Se der erro, é porque a chave privada não corresponde à pública do destinatário
-            // e.printStackTrace(); // Descomente para debug
-            return null; 
+            return null;
         }
     }
     
@@ -93,7 +112,7 @@ public class SaudeTransaction implements Serializable {
     
     // Getters de compatibilidade
     public String getDescription() { 
-        return "AES Encrypted"; 
+        return "AES Dual Encrypted"; 
     }
     
     public double getValue() { 
@@ -105,5 +124,6 @@ public class SaudeTransaction implements Serializable {
         return "Receita Segura (AES+RSA) De: " + txtSender + " Para: " + txtReceiver;
     }
     
-    private static final long serialVersionUID = 202510141147L;
+    // Alterei o SerialVersion porque a estrutura da classe mudou
+    private static final long serialVersionUID = 202512129999L;
 }
