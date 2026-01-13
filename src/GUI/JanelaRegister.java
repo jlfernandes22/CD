@@ -17,11 +17,17 @@ public class JanelaRegister extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(JanelaRegister.class.getName());
 
+    
+    
     /**
      * Creates new form JanelaRegister
      */
     public JanelaRegister() {
         initComponents();
+        TipoConta.removeAllItems();
+        TipoConta.addItem("Utente");
+        TipoConta.addItem("Médico");
+        TipoConta.addItem("Farmacêutico");
     }
 
     /**
@@ -37,7 +43,6 @@ public class JanelaRegister extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         txtNome = new javax.swing.JTextField();
-        txtPassword = new javax.swing.JTextField();
         txtDataNascimento = new javax.swing.JTextField();
         txtUtente = new javax.swing.JTextField();
         txtNaturalidade = new javax.swing.JTextField();
@@ -49,10 +54,11 @@ public class JanelaRegister extends javax.swing.JFrame {
         txtSexo = new javax.swing.JTextField();
         txtMorada = new javax.swing.JTextField();
         RegistarButton = new javax.swing.JButton();
-        txtConfirmPassword = new javax.swing.JTextField();
         txtTelemovel = new javax.swing.JTextField();
-        medico = new javax.swing.JCheckBox();
         RegistarButton1 = new javax.swing.JButton();
+        TipoConta = new javax.swing.JComboBox<>();
+        txtPassword = new javax.swing.JPasswordField();
+        txtConfirmPassword = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -81,9 +87,6 @@ public class JanelaRegister extends javax.swing.JFrame {
 
         txtNome.setText("Nome:");
         txtNome.addActionListener(this::txtNomeActionPerformed);
-
-        txtPassword.setText("Pass:");
-        txtPassword.addActionListener(this::txtPasswordActionPerformed);
 
         txtDataNascimento.setText("Data de Nascimento:");
         txtDataNascimento.addActionListener(this::txtDataNascimentoActionPerformed);
@@ -120,19 +123,17 @@ public class JanelaRegister extends javax.swing.JFrame {
         RegistarButton.setText("Registar");
         RegistarButton.addActionListener(this::RegistarButtonActionPerformed);
 
-        txtConfirmPassword.setText("Confirmar Pass:");
-        txtConfirmPassword.addActionListener(this::txtConfirmPasswordActionPerformed);
-
         txtTelemovel.setText("Telemóvel:");
         txtTelemovel.addActionListener(this::txtTelemovelActionPerformed);
-
-        medico.setBackground(new java.awt.Color(204, 255, 255));
-        medico.setText("Médico");
 
         RegistarButton1.setBackground(new java.awt.Color(204, 255, 255));
         RegistarButton1.setFont(new java.awt.Font("Hiragino Sans", 3, 18)); // NOI18N
         RegistarButton1.setText("Login");
         RegistarButton1.addActionListener(this::RegistarButton1ActionPerformed);
+
+        TipoConta.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        txtConfirmPassword.addActionListener(this::txtConfirmPasswordActionPerformed);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -145,7 +146,6 @@ public class JanelaRegister extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(txtNome, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtPassword, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtDataNascimento, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtUtente, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtNaturalidade)
@@ -155,15 +155,13 @@ public class JanelaRegister extends javax.swing.JFrame {
                             .addComponent(txtNISS, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtUnidadeSaude)
                             .addComponent(txtSexo, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtTelemovel, javax.swing.GroupLayout.Alignment.LEADING))
+                            .addComponent(txtTelemovel, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtPassword))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtConfirmPassword))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(medico, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(34, 34, 34))))
+                            .addComponent(txtConfirmPassword, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(TipoConta, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(20, 20, 20))
                     .addComponent(txtMorada))
                 .addGap(25, 25, 25))
             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -182,7 +180,7 @@ public class JanelaRegister extends javax.swing.JFrame {
                 .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtConfirmPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtDataNascimento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -201,11 +199,11 @@ public class JanelaRegister extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtUnidadeSaude, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtTelemovel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtSexo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(medico, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtTelemovel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(TipoConta, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtSexo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtMorada, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -232,10 +230,6 @@ public class JanelaRegister extends javax.swing.JFrame {
     private void txtNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNomeActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNomeActionPerformed
-
-    private void txtPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPasswordActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtPasswordActionPerformed
 
     private void txtDataNascimentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDataNascimentoActionPerformed
         // TODO add your handling code here:
@@ -278,7 +272,7 @@ public class JanelaRegister extends javax.swing.JFrame {
     }//GEN-LAST:event_txtMoradaActionPerformed
 
     private void RegistarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistarButtonActionPerformed
-        try {
+        try {           
         // 1. Recolher dados da GUI
         String name = txtNome.getText().trim();
         String pass = txtPassword.getText();
@@ -300,7 +294,7 @@ public class JanelaRegister extends javax.swing.JFrame {
         String morada = txtMorada.getText();
         String niss = txtNISS.getText();
         String telemovel = txtTelemovel.getText();
-        boolean isMedico = medico.isSelected();
+        String tipoDeConta = (String) TipoConta.getSelectedItem();
         String unidade = txtUnidadeSaude.getText();
 
         // 2. Validação de campos obrigatórios
@@ -321,7 +315,7 @@ public class JanelaRegister extends javax.swing.JFrame {
                 // Isto cria o Utilizador (chaves RSA/AES) E a Carteira (ficheiro .wlt)
                 SaudeWallet.create(name, pass, dataNasc, cc, utente, sexo, 
                                  nacionalidade, naturalidade, morada, 
-                                 niss, telemovel, isMedico, unidade);
+                                 niss, telemovel, tipoDeConta, unidade);
                 
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this, "Utilizador e Carteira de " + name + " criados com sucesso!");
@@ -344,10 +338,6 @@ public class JanelaRegister extends javax.swing.JFrame {
 
     }//GEN-LAST:event_RegistarButtonActionPerformed
 
-    private void txtConfirmPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtConfirmPasswordActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtConfirmPasswordActionPerformed
-
     private void txtTelemovelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTelemovelActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtTelemovelActionPerformed
@@ -360,6 +350,10 @@ public class JanelaRegister extends javax.swing.JFrame {
          this.dispose();
 
     }//GEN-LAST:event_RegistarButton1ActionPerformed
+
+    private void txtConfirmPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtConfirmPasswordActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtConfirmPasswordActionPerformed
 
     /**
      * @param args the command line arguments
@@ -389,12 +383,12 @@ public class JanelaRegister extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton RegistarButton;
     private javax.swing.JButton RegistarButton1;
+    private javax.swing.JComboBox<String> TipoConta;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JCheckBox medico;
     private javax.swing.JTextField txtCC;
-    private javax.swing.JTextField txtConfirmPassword;
+    private javax.swing.JPasswordField txtConfirmPassword;
     private javax.swing.JTextField txtDataNascimento;
     private javax.swing.JTextField txtMorada;
     private javax.swing.JTextField txtNIF;
@@ -402,7 +396,7 @@ public class JanelaRegister extends javax.swing.JFrame {
     private javax.swing.JTextField txtNacionalidade;
     private javax.swing.JTextField txtNaturalidade;
     private javax.swing.JTextField txtNome;
-    private javax.swing.JTextField txtPassword;
+    private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtSexo;
     private javax.swing.JTextField txtTelemovel;
     private javax.swing.JTextField txtUnidadeSaude;

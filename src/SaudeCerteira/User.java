@@ -41,7 +41,7 @@ import utils.SecurityUtils;
 public class User implements Serializable{
 
     public static final String FILE_PATH = "data_user/";
-
+    String role;
     public String userName;
     public String dataNascimento;
     private String identidadeCC;
@@ -52,7 +52,7 @@ public class User implements Serializable{
     private String morada;
     private String NISS;
     private String telemovel;
-    private boolean medico;
+   
 
     
     private String unidadeSaude;
@@ -94,9 +94,7 @@ public class User implements Serializable{
         return identidadeCC;
     }
 
-    public boolean isMedico() {
-        return medico;
-    }
+    
     
     public String getUnidadeSaude(){
         return unidadeSaude;
@@ -134,6 +132,19 @@ public class User implements Serializable{
         return serialVersionUID;
     }
     
+    // Métodos auxiliares para facilitar a verificação no código antigo
+    public boolean isMedico() {
+        return "Médico".equals(this.role);
+    }
+
+    public boolean isFarmaceutico() {
+        return "Farmacêutico".equals(this.role);
+    }
+    
+    public String getRole() {
+        return this.role;
+    }
+    
     
     
     
@@ -141,7 +152,7 @@ public class User implements Serializable{
     public static User register(String name, String password, String dataNascimento, 
                                 String identidadeCC, String numeroUtente, String sexo,
                                 String paisnacionalidade, String naturalidade, String morada,
-                                String NISS, String telemovel, boolean medico, String unidadeSaude) throws Exception {
+                                String NISS, String telemovel, String role, String unidadeSaude) throws Exception {
         //verificar se o user já esta registado
         if( new File(FILE_PATH + name + ".pub").exists())
             throw new Exception("User already exists :" + name);
@@ -150,7 +161,7 @@ public class User implements Serializable{
         user.userName = name;
         user.dataNascimento = dataNascimento;
         user.identidadeCC = identidadeCC;
-        user.medico = medico;
+        user.role = role;
         user.unidadeSaude = unidadeSaude;
         user.numeroUtente = numeroUtente;
         user.sexo = sexo;

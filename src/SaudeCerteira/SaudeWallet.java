@@ -39,10 +39,10 @@ public class SaudeWallet implements Serializable {
     public static SaudeWallet create(String name, String password, String dataNascimento, 
                                 String identidadeCC, String numeroUtente, String sexo,
                                 String paisnacionalidade, String naturalidade, String morada,
-                                String NISS, String telemovel, boolean medico, String unidadeSaude) throws Exception { 
+                                String NISS, String telemovel, String role, String unidadeSaude) throws Exception { 
        return create(User.register(name, password, dataNascimento, identidadeCC, 
                                     numeroUtente, sexo, paisnacionalidade, naturalidade, morada, 
-                                    NISS, telemovel, medico, unidadeSaude));
+                                    NISS, telemovel, role, unidadeSaude));
     }
 
     public static SaudeWallet create(User newUSer) throws Exception {
@@ -130,19 +130,21 @@ public class SaudeWallet implements Serializable {
         Map<String, Integer> inventario = new HashMap<>();
         StringBuilder relatorio = new StringBuilder();
 
-        // 1. Verificar se o utilizador atual é Médico
-        boolean isMedico = false;
+        // 1. Carregar o Role (Papel) do utilizador a partir do disco
+        String role = "Utente"; // Valor predefinido
         try {
-            // Tenta carregar o objeto User do disco para consultar a flag isMedico
             java.io.File userFile = new java.io.File("data_user/" + this.user + ".user");
             if (userFile.exists()) {
                 try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(new java.io.FileInputStream(userFile))) {
                     User u = (User) in.readObject();
-                    isMedico = u.isMedico(); // Assume que a classe User tem este método
+                    // Obtém o papel: "Médico", "Farmácia" ou "Utente"
+                    if (u.getRole() != null) {
+                        role = u.getRole();
+                    }
                 }
             }
         } catch (Exception e) {
-            // Se der erro a ler, assume que não é médico por segurança
+            // Se der erro, mantém-se como "Utente" por segurança
         }
 
         // 2. Percorrer Transações para calcular saldo
@@ -157,38 +159,46 @@ public class SaudeWallet implements Serializable {
                     int qtd = Integer.parseInt(dados[0]);
                     String medicamento = dados[1];
 
-                    // CASO A: RECEBI -> SOMA SEMPRE (Médicos e Pacientes acumulam o que recebem)
+                    // CASO A: RECEBI -> SOMA SEMPRE
+                    // Utentes recebem do Médico (Ganham receita)
+                    // Farmácias recebem do Utente (Ganham prova de aviamento)
                     if (t.getTxtReceiver().equals(this.user)) {
                         int atual = inventario.getOrDefault(medicamento, 0);
                         inventario.put(medicamento, atual + qtd);
                     }
                     
-                    // CASO B: ENVIEI -> SUBTRAI... MAS SÓ SE NÃO FOR MÉDICO!
+                    // CASO B: ENVIEI -> SUBTRAI? (Depende do Role)
                     if (t.getTxtSender().equals(this.user)) {
-                        if (!isMedico) {
-                            // Pacientes/Farmácias gastam stock ao enviar
+                        
+                        if ("Médico".equals(role)) {
+                            // Médicos têm stock Infinito: NÃO subtrai nada ao enviar.
+                        } 
+                        else {
+                            // Utentes (ao aviar) e Farmácias (se transferirem) gastam stock.
                             int atual = inventario.getOrDefault(medicamento, 0);
                             inventario.put(medicamento, atual - qtd);
-                        } 
-                        // Se for Médico, NÃO subtrai (Stock Infinito/Emissão)
+                        }
                     }
                     
                 } catch (Exception e) {}
             }
         }
 
-        // 3. Construir o Relatório
-        relatorio.append("\n=== 🏥 CARTEIRA DE SAÚDE (SNS24) ===\n");
-        if (isMedico) {
-            relatorio.append(" [PERFIL MÉDICO: EMISSÃO LIVRE]\n");
+        // 3. Construir o Relatório Personalizado
+        relatorio.append("\n=== 🏥 CARTEIRA DIGITAL (").append(role.toUpperCase()).append(") ===\n");
+        
+        if ("Médico".equals(role)) {
+            relatorio.append(" [MODO CLÍNICO: Emissão Ilimitada]\n");
+        } else if ("Farmácia".equals(role)) {
+            relatorio.append(" [MODO FARMÁCIA: Receitas Aviadas]\n");
         }
 
         if (inventario.isEmpty()) {
-            relatorio.append(" (Carteira vazia)\n");
+            relatorio.append(" (Sem registos)\n");
         } else {
-            relatorio.append("--- Medicamentos em Posse ---\n");
+            relatorio.append("--- Histórico de Medicamentos ---\n");
             for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
-                // Apenas mostra se tiver quantidade positiva (opcional)
+                // Mostra apenas se quantidade > 0 (opcional)
                 if (entry.getValue() > 0) {
                     relatorio.append(" 💊 ").append(entry.getKey())
                              .append(": ").append(entry.getValue()).append(" un.\n");
@@ -208,9 +218,9 @@ public class SaudeWallet implements Serializable {
         BlockChain.deleteAllBlocks();
         
         // Criar Utilizadores
-        SaudeWallet.create("Master", "123qwe", "01/01/1980", "111", "111", "M", "PT", "Tomar", "Hospital", "111", "911", true, "Hospital Central");
-        SaudeWallet.create("System", "123qwe", "01/01/1980", "222", "222", "M", "PT", "Server", "Cloud", "222", "922", true, "System Root");
-        SaudeWallet.create("aa", "aa", "01/01/2000", "000", "000", "M", "PT", "Lisboa", "Rua A", "000", "900", false, "Clínica A");
+        SaudeWallet.create("Master", "123qwe", "01/01/1980", "111", "111", "M", "PT", "Tomar", "Hospital", "111", "911", "Médico", "Hospital Central");
+        SaudeWallet.create("System", "123qwe", "01/01/1980", "222", "222", "M", "PT", "Server", "Cloud", "222", "922", "Farmacêutico", "System Root");
+        SaudeWallet.create("aa", "aa", "01/01/2000", "000", "000", "M", "PT", "Lisboa", "Rua A", "000", "900", "Utente", "Clínica A");
         
         // Criar Bloco Genesis
         // Nota: Com stock infinito, esta transação é opcional, mas serve para testar o sistema.
