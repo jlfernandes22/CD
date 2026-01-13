@@ -148,17 +148,16 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
         network.add(node);
         this.transactions.addAll(node.getTransactions());
 
-        // :::::::::: SYNC: SINCRONIZAÇÃO DA BLOCKCHAIN AO CONECTAR ::::::::::
+        // :::::::::: SYNC: SINCRONIZAÇÃO DE FICHEIROS (DATA_BLOCKS) ::::::::::
         try {
             System.out.println("A iniciar sincronização com " + node.getAdress());
 
-            // 1. Pedir a blockchain do nó remoto
+            // 1. Comparar tamanhos usando o objeto leve (rápido)
             core.BlockChain remoteChain = node.getBlockchain();
             core.BlockChain localChain = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
 
-            // 2. Decidir se devemos atualizar (Se a dele for maior ou se eu não tiver nada)
             boolean devoAtualizar = false;
-
+            
             if (remoteChain != null) {
                 if (localChain == null) {
                     devoAtualizar = true; // Sou novo, aceito tudo
@@ -170,23 +169,42 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                 }
             }
 
-            // 3. Aplicar a atualização
+            // 2. Se precisar de atualizar, faz download da PASTA INTEIRA (ZIP)
             if (devoAtualizar) {
-                System.out.println("SYNC: Recebida blockchain maior. A atualizar...");
-
-                // Gravar no disco
-                remoteChain.save(core.BlockChain.FILE_PATH + "blockchain.bch");
-
-                // Atualizar Saldos e Carteiras com a nova chain
-                // (Percorre todos os blocos para reconstruir o estado das carteiras)
-                core.Block current = remoteChain.getLastBlock();
-                // Nota: O ideal seria reconstruir desde o genesis, mas para este projeto, 
-                // garantir que o último bloco atualiza o estado pode ser suficiente se o SaudeWallet for robusto.
-                // Mas para garantir, podemos forçar um reload na GUI.
-
-                if (listener != null) {
-                    // Envia sinal para a GUI recarregar o inventário visualmente
-                    listener.onTransaction("BlockReceived");
+                System.out.println("SYNC: A descarregar ficheiros da blockchain (ZIP)...");
+                
+                // Pede os dados ZIP ao nó remoto
+                byte[] zipData = node.getBlockchainData();
+                
+                if (zipData != null && zipData.length > 0) {
+                    // A. Limpar a pasta atual para não misturar ficheiros velhos com novos
+                    java.io.File folder = new java.io.File("data_blocks");
+                    if (folder.exists()) {
+                        // Apaga todos os ficheiros dentro da pasta
+                        for (java.io.File f : folder.listFiles()) {
+                            if(f.isFile()) f.delete();
+                        }
+                    } else {
+                        folder.mkdirs();
+                    }
+                    
+                    // B. Descomprimir o ZIP recebido para a pasta
+                    utils.Zip.unzipFolder(zipData, folder);
+                    System.out.println("SYNC: Ficheiros descomprimidos com sucesso em data_blocks/");
+                    
+                    // C. Recarregar a memória com a nova blockchain física
+                    core.BlockChain novaChain = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
+                    
+                    // D. Atualizar Saldos/Carteiras com a nova chain
+                    if (novaChain != null) {
+                        // Importante: Passar o último bloco força a atualização do estado das carteiras
+                        SaudeCerteira.SaudeWallet.updateWallets(novaChain.getLastBlock()); 
+                    }
+                    
+                    // E. Refrescar a GUI
+                    if (listener != null) {
+                        listener.onTransaction("BlockReceived"); 
+                    }
                 }
             } else {
                 System.out.println("SYNC: A minha blockchain já está atualizada.");
@@ -371,6 +389,27 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                     }
                 }
             }).start();
+        }
+    }
+    
+    // Implementação do método que o outro nó chama para sacar a blockchain
+    @Override
+    public byte[] getBlockchainData() throws RemoteException {
+        try {
+            java.io.File folder = new java.io.File("data_blocks");
+            
+            // Se a pasta não existir ou estiver vazia, tenta enviar apenas o ficheiro .bch se estiver na raiz
+            if (!folder.exists() || folder.listFiles().length == 0) {
+                // (Opcional) Lógica de fallback se quiser
+                return null; 
+            }
+            
+            System.out.println("A enviar pasta data_blocks comprimida...");
+            return utils.Zip.zipFolder(folder);
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao zipar blockchain: " + e.getMessage());
+            return null;
         }
     }
 

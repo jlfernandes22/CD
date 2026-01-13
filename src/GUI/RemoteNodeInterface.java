@@ -16,6 +16,8 @@ public interface RemoteNodeInterface extends Remote {
     // Propagação de Blocos
     public core.BlockChain getBlockchain() throws RemoteException;
     
+    public byte[] getBlockchainData() throws RemoteException;
+    
     public void propagateBlock(byte[] blockData) throws RemoteException;
     
     public void addNode(RemoteNodeInterface node) throws RemoteException;

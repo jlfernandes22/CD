@@ -1,79 +1,83 @@
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//::                                                                         ::
-//::     Antonio Manuel Rodrigues Manso                                      ::
-//::                                                                         ::
-//::     I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R        ::
-//::     Escola Superior de Tecnologia de Tomar                              ::
-//::     e-mail: manso@ipt.pt                                                ::
-//::     url   : http://orion.ipt.pt/~manso                                  ::
-//::                                                                         ::
-//::     This software was build with the purpose of investigate and         ::
-//::     learning.                                                           ::
-//::                                                                         ::
-//::                                                               (c)2020   ::
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-//////////////////////////////////////////////////////////////////////////////
 package utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
-/**
- *
- * @author doctmanso
- */
 public class Zip {
 
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    //:::::::::::        ZIP /  UNZIP                                :::::::::::
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     /**
-     * Comprime um array de bytes utilizando o algoritmo GZIP
-     *
-     * @param data dados originais
-     * @return dados comprimidos
-     * @throws IOException
+     * Comprime uma PASTA inteira para um array de bytes (Formato ZIP)
      */
-    public static byte[] compress(byte[] data) throws IOException {
-        //array de bytes em memória
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        // adaptador GZIP para comprimir bytes
-        GZIPOutputStream zout = new GZIPOutputStream(bout);
-        //escrever os dados no GZIP
-        zout.write(data, 0, data.length);
-        //terminar a escrita de dados
-        zout.finish();
-        //devolver os dados comprimidos
-        return bout.toByteArray();
-    }
-
-    /**
-     * Expande um array de dados comprimidos pelo algoritmo GZIP
-     *
-     * @param data dados comprimidos
-     * @return dados originais
-     * @throws IOException
-     */
-    public static byte[] expand(byte[] data) throws IOException {
-        //Stream com Array de bytes em memória
-        ByteArrayInputStream bin = new ByteArrayInputStream(data);
-        //Adaptador GZIP para descomprimir a stream
-        GZIPInputStream zin = new GZIPInputStream(bin);
-        //Array de bytes expandidos
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        //buffer de leitura
-        byte[] buffer = new byte[1024];
-        int len = 0;
-        //ler os dados da stream GZIP
-        while ((len = zin.read(buffer)) > 0) {
-            //escrever os dados na Stream expandida
-            bout.write(buffer, 0, len);
+    public static byte[] zipFolder(File folder) throws IOException {
+        if (!folder.exists() || !folder.isDirectory()) {
+            return null;
         }
-        //retornar os bytes originais
-        return bout.toByteArray();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(bos)) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        // Cria entrada no Zip
+                        ZipEntry zipEntry = new ZipEntry(file.getName());
+                        zos.putNextEntry(zipEntry);
+
+                        // Lê o ficheiro e escreve no Zip
+                        try (FileInputStream fis = new FileInputStream(file)) {
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = fis.read(buffer)) >= 0) {
+                                zos.write(buffer, 0, length);
+                            }
+                        }
+                        zos.closeEntry();
+                    }
+                }
+            }
+        }
+        return bos.toByteArray();
     }
 
+    /**
+     * Descomprime um array de bytes (ZIP) para dentro de uma PASTA
+     */
+    public static void unzipFolder(byte[] data, File destFolder) throws IOException {
+        if (!destFolder.exists()) {
+            destFolder.mkdirs();
+        }
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        try (ZipInputStream zis = new ZipInputStream(bis)) {
+            ZipEntry zipEntry = zis.getNextEntry();
+            
+            while (zipEntry != null) {
+                File newFile = new File(destFolder, zipEntry.getName());
+                
+                // Proteção contra Zip Slip (segurança)
+                if (!newFile.getCanonicalPath().startsWith(destFolder.getCanonicalPath())) {
+                    throw new IOException("Entrada Zip fora da pasta de destino: " + zipEntry.getName());
+                }
+
+                // Escrever o ficheiro no disco
+                try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                }
+                
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+        }
+    }
 }
