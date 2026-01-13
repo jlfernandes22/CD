@@ -331,7 +331,12 @@ public class RemoteNodeObject extends UnicastRemoteObject implements RemoteNodeI
                 }
 
                 // ATUALIZAR CARTEIRAS (Sempre)
-                SaudeCerteira.SaudeWallet.updateWallets(newBlock);
+                try {
+                    SaudeCerteira.SaudeWallet.updateWallets(newBlock);
+                } catch (Exception e) {
+                    System.out.println("Aviso: Erro ao atualizar carteiras (mas o bloco é válido): " + e.getMessage());
+                    // Opcional: e.printStackTrace(); para ver o erro detalhado no log
+                }
 
                 // Limpar transações
                 List<SaudeCerteira.SaudeTransaction> mined = (List<SaudeCerteira.SaudeTransaction>) newBlock.getData().getElements();
