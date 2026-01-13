@@ -59,10 +59,12 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
-
+            
         this.utilizadorLogado = user;
         this.nomeUser = utilizadorLogado.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
+        imgMiner.setVisible(false);       // Mostra o boneco a trabalhar
+        imgWinner.setVisible(false);     // Esconde o troféu (ainda não ganhou)
         aplicarPermissoesPorRole();
         carregarInventarioSNS24();
     }
@@ -923,7 +925,8 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
         // [CORREÇÃO] Desativar botão para impedir criação de múltiplas threads e erros de "Invalid Block"
-         btStartMinig.setEnabled(false);
+        btStartMinig.setEnabled(false); // Impede clicar 2 vezes
+        
          
          try {
             // 1. Carregar Blockchain Local
