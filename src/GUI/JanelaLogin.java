@@ -22,7 +22,7 @@ public class JanelaLogin extends javax.swing.JFrame {
      */
     public JanelaLogin() {
         try {
-            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
             initComponents();
             setLocationRelativeTo(null);
         } catch (Exception ex) {

@@ -130,10 +130,26 @@ public class SaudeWallet implements Serializable {
         Map<String, Integer> inventario = new HashMap<>();
         StringBuilder relatorio = new StringBuilder();
 
+        // 1. Verificar se o utilizador atual é Médico
+        boolean isMedico = false;
+        try {
+            // Tenta carregar o objeto User do disco para consultar a flag isMedico
+            java.io.File userFile = new java.io.File("data_user/" + this.user + ".user");
+            if (userFile.exists()) {
+                try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(new java.io.FileInputStream(userFile))) {
+                    User u = (User) in.readObject();
+                    isMedico = u.isMedico(); // Assume que a classe User tem este método
+                }
+            }
+        } catch (Exception e) {
+            // Se der erro a ler, assume que não é médico por segurança
+        }
+
+        // 2. Percorrer Transações para calcular saldo
         for (WalletTransaction wt : transactions) {
             SaudeTransaction t = wt.getTransaction();
             
-            // Tenta abrir o envelope digital
+            // Tenta abrir o envelope digital com a chave privada
             String[] dados = t.desencriptarConteudo(minhaChavePrivada);
             
             if (dados != null && dados.length == 2) {
@@ -141,25 +157,42 @@ public class SaudeWallet implements Serializable {
                     int qtd = Integer.parseInt(dados[0]);
                     String medicamento = dados[1];
 
-                    // STOCK INFINITO: Só quem recebe é que acumula.
-                    // Médicos emitem sem gastar.
+                    // CASO A: RECEBI -> SOMA SEMPRE (Médicos e Pacientes acumulam o que recebem)
                     if (t.getTxtReceiver().equals(this.user)) {
                         int atual = inventario.getOrDefault(medicamento, 0);
                         inventario.put(medicamento, atual + qtd);
+                    }
+                    
+                    // CASO B: ENVIEI -> SUBTRAI... MAS SÓ SE NÃO FOR MÉDICO!
+                    if (t.getTxtSender().equals(this.user)) {
+                        if (!isMedico) {
+                            // Pacientes/Farmácias gastam stock ao enviar
+                            int atual = inventario.getOrDefault(medicamento, 0);
+                            inventario.put(medicamento, atual - qtd);
+                        } 
+                        // Se for Médico, NÃO subtrai (Stock Infinito/Emissão)
                     }
                     
                 } catch (Exception e) {}
             }
         }
 
+        // 3. Construir o Relatório
         relatorio.append("\n=== 🏥 CARTEIRA DE SAÚDE (SNS24) ===\n");
+        if (isMedico) {
+            relatorio.append(" [PERFIL MÉDICO: EMISSÃO LIVRE]\n");
+        }
+
         if (inventario.isEmpty()) {
-            relatorio.append(" (Sem medicamentos disponíveis)\n");
+            relatorio.append(" (Carteira vazia)\n");
         } else {
-            relatorio.append("--- Receitas Disponíveis ---\n");
+            relatorio.append("--- Medicamentos em Posse ---\n");
             for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
-                relatorio.append(" 💊 ").append(entry.getKey())
-                         .append(": ").append(entry.getValue()).append(" un.\n");
+                // Apenas mostra se tiver quantidade positiva (opcional)
+                if (entry.getValue() > 0) {
+                    relatorio.append(" 💊 ").append(entry.getKey())
+                             .append(": ").append(entry.getValue()).append(" un.\n");
+                }
             }
         }
         relatorio.append("====================================\n");
