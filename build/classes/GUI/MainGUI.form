@@ -193,6 +193,7 @@
                   <SubComponents>
                     <Component class="javax.swing.JTextPane" name="txtServerLog">
                       <Properties>
+                        <Property name="editable" type="boolean" value="false"/>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="ff" green="ff" red="cc" type="rgb"/>
                         </Property>
@@ -606,6 +607,7 @@
                   <SubComponents>
                     <Component class="javax.swing.JTextArea" name="txtMinerMessage">
                       <Properties>
+                        <Property name="editable" type="boolean" value="false"/>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="ff" green="ff" red="cc" type="rgb"/>
                         </Property>
@@ -836,6 +838,7 @@
                   <SubComponents>
                     <Component class="javax.swing.JTextArea" name="txtLstTransactions">
                       <Properties>
+                        <Property name="editable" type="boolean" value="false"/>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="ff" green="f7" red="e2" type="rgb"/>
                         </Property>
@@ -925,6 +928,7 @@
                   <SubComponents>
                     <Component class="javax.swing.JTextArea" name="jTextArea1">
                       <Properties>
+                        <Property name="editable" type="boolean" value="false"/>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="ff" green="f7" red="e2" type="rgb"/>
                         </Property>

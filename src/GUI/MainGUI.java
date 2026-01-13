@@ -253,6 +253,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
         jPanel12.setLayout(new java.awt.BorderLayout(10, 10));
 
+        txtServerLog.setEditable(false);
         txtServerLog.setBackground(new java.awt.Color(204, 255, 255));
         txtServerLog.setBorder(javax.swing.BorderFactory.createTitledBorder("Log Server"));
         txtServerLog.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
@@ -488,6 +489,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             }
         });
 
+        txtMinerMessage.setEditable(false);
         txtMinerMessage.setBackground(new java.awt.Color(204, 255, 255));
         txtMinerMessage.setColumns(20);
         txtMinerMessage.setRows(5);
@@ -601,6 +603,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             }
         });
 
+        txtLstTransactions.setEditable(false);
         txtLstTransactions.setBackground(new java.awt.Color(226, 247, 255));
         txtLstTransactions.setColumns(20);
         txtLstTransactions.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
@@ -696,6 +699,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
         jPanel13.setBackground(new java.awt.Color(0, 204, 204));
 
+        jTextArea1.setEditable(false);
         jTextArea1.setBackground(new java.awt.Color(226, 247, 255));
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -1414,7 +1418,6 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
-    private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel15;
     private javax.swing.JPanel jPanel16;
     private javax.swing.JPanel jPanel2;
@@ -1426,9 +1429,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JPanel pnConnect;
     private javax.swing.JPanel pnCriarReceitas;
     private javax.swing.JPanel pnMine;
