@@ -138,7 +138,84 @@ public class SaudeWallet implements Serializable {
         Map<String, Integer> inventario = new HashMap<>();
         StringBuilder relatorio = new StringBuilder();
 
-        // 1. Carregar o Role
+        // 1. Carregar o Role (Papel) do utilizador a partir do disco
+        String role = "Utente"; // Valor predefinido
+        try {
+            java.io.File userFile = new java.io.File("data_user/" + this.user + ".user");
+            if (userFile.exists()) {
+                try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(new java.io.FileInputStream(userFile))) {
+                    User u = (User) in.readObject();
+                    if (u.getRole() != null) {
+                        role = u.getRole();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Se der erro, mantém-se como "Utente" por segurança
+        }
+
+        // 2. Percorrer Transações para calcular saldo
+        for (WalletTransaction wt : transactions) {
+            SaudeTransaction t = wt.getTransaction();
+
+            // Tenta abrir o envelope digital com a chave privada
+            String[] dados = t.desencriptarConteudo(minhaChavePrivada);
+
+            if (dados != null && dados.length == 2) {
+                try {
+                    int qtd = Integer.parseInt(dados[0]);
+                    String medicamento = dados[1];
+
+                    // CASO A: RECEBI -> SOMA SEMPRE
+                    // (Utente recebe do Médico) ou (Farmácia recebe do Utente)
+                    if (t.getTxtReceiver().equals(this.user)) {
+                        int atual = inventario.getOrDefault(medicamento, 0);
+                        inventario.put(medicamento, atual + qtd);
+                    }
+
+                    if (t.getTxtSender().equals(this.user)) {
+
+                        if ("Utente".equals(role)) {
+                            int atual = inventario.getOrDefault(medicamento, 0);
+                            inventario.put(medicamento, atual - qtd);
+                        }
+                    }
+
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        // 3. Construir o Relatório Personalizado
+        relatorio.append("\n=== 🏥 CARTEIRA DIGITAL (").append(role.toUpperCase()).append(") ===\n");
+
+        if ("Médico".equals(role)) {
+            relatorio.append(" [MODO CLÍNICO: Emissão Ilimitada]\n");
+        } else if ("Farmácia".equals(role)) {
+            relatorio.append(" [MODO FARMÁCIA: Receitas Aviadas/Stock]\n");
+        }
+
+        if (inventario.isEmpty()) {
+            relatorio.append(" (Sem registos)\n");
+        } else {
+            relatorio.append("--- Histórico de Medicamentos ---\n");
+            for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
+                // Se quiser mostrar mesmo quando é 0 (para provar que enviou), remova o if
+                if (entry.getValue() > 0) {
+                    relatorio.append(" 💊 ").append(entry.getKey())
+                            .append(": ").append(entry.getValue()).append(" un.\n");
+                }
+            }
+        }
+        relatorio.append("====================================\n");
+        return relatorio.toString();
+    }
+
+    /**
+     * Verifica se o utilizador tem stock suficiente para realizar a transação.
+     */
+    public boolean possoEnviar(String medicamentoAlvo, int qtdDesejada, PrivateKey minhaChavePrivada) {
+        // 1. Carregar Role
         String role = "Utente";
         try {
             java.io.File userFile = new java.io.File("data_user/" + this.user + ".user");
@@ -153,83 +230,41 @@ public class SaudeWallet implements Serializable {
         } catch (Exception e) {
         }
 
-        System.out.println("--- DEBUG INVENTÁRIO (Sou: " + this.user + " | Role: " + role + ") ---");
+        // SE FOR MÉDICO, PODE SEMPRE (Stock Infinito)
+        if ("Médico".equals(role)) {
+            return true;
+        }
 
-        // 2. Percorrer Transações
+        // 2. Calcular Stock Atual (Igual ao getInventarioDescodificado)
+        int stockAtual = 0;
+
         for (WalletTransaction wt : transactions) {
             SaudeTransaction t = wt.getTransaction();
-
-            // Tenta abrir o envelope
             String[] dados = t.desencriptarConteudo(minhaChavePrivada);
 
-            // LOGICA PARA QUEM RECEBE (Funciona bem)
-            if (t.getTxtReceiver().equals(this.user)) {
-                if (dados != null && dados.length == 2) {
-                    try {
-                        int qtd = Integer.parseInt(dados[0]);
-                        String medicamento = dados[1];
-                        int atual = inventario.getOrDefault(medicamento, 0);
-                        inventario.put(medicamento, atual + qtd);
-                    } catch (Exception e) {
-                    }
-                }
-            }
+            if (dados != null && dados.length == 2) {
+                try {
+                    int qtd = Integer.parseInt(dados[0]);
+                    String med = dados[1];
 
-            // LOGICA PARA QUEM ENVIA (Onde está o problema)
-            if (t.getTxtSender().equals(this.user)) {
-                if ("Médico".equals(role)) {
-                    continue; // Médicos ignoram
-                }
-                // Se conseguimos desencriptar (o que é raro para o remetente em RSA simples)
-                if (dados != null && dados.length == 2) {
-                    try {
-                        int qtd = Integer.parseInt(dados[0]);
-                        String medicamento = dados[1];
-                        int atual = inventario.getOrDefault(medicamento, 0);
-                        inventario.put(medicamento, atual - qtd);
-                        System.out.println("-> Subtraí " + qtd + " de " + medicamento);
-                    } catch (Exception e) {
+                    // Só nos interessa o medicamento que queremos enviar
+                    if (med.equals(medicamentoAlvo)) {
+                        // Recebi -> Soma
+                        if (t.getTxtReceiver().equals(this.user)) {
+                            stockAtual += qtd;
+                        }
+                        // Enviei -> Subtrai (Já sabemos que não sou Médico)
+                        if (t.getTxtSender().equals(this.user)) {
+                            stockAtual -= qtd;
+                        }
                     }
-                } else {
-                    // SE ENTRAR AQUI, É O PROBLEMA DO ENVELOPE
-                    System.out.println("ERRO: Enviei uma transação mas não consigo ler o conteúdo (Criptografia).");
-
-                    // --- TENTATIVA DE CORREÇÃO (PLAN B) ---
-                    // Se a classe SaudeTransaction tiver os campos acessíveis sem encriptação
-                    // ou se guardou a descrição em algum lado.
-                    // Se não tiver acesso, infelizmente o sistema criptográfico impede a subtração visual.
-                    // Tente ver se consegue obter a informação de outra forma. 
-                    // Se não conseguir, assumimos 1 unidade genérica ou tentamos ler campos públicos:
-                    try {
-                        // Se a sua classe SaudeTransaction tiver um getDescricao() público ou similar, use-o aqui
-                        // Exemplo (apenas se existir):
-                        // String medicamento = t.getMedicamentoPublico(); 
-                        // int qtd = t.getQuantidadePublica();
-
-                        // Se não existir, não há como saber o que subtrair matematicamente.
-                    } catch (Exception ex) {
-                    }
+                } catch (Exception e) {
                 }
             }
         }
 
-        // ... (construção do relatório mantém-se igual) ...
-        relatorio.append("\n=== 🏥 CARTEIRA DIGITAL (").append(role.toUpperCase()).append(") ===\n");
-        if ("Médico".equals(role)) {
-            relatorio.append(" [MODO CLÍNICO]\n");
-        } else if ("Farmacêutico".equals(role)) {
-            relatorio.append(" [MODO FARMÁCIA]\n");
-        }
-
-        if (inventario.isEmpty()) {
-            relatorio.append(" (Sem registos)\n");
-        } else {
-            for (Map.Entry<String, Integer> entry : inventario.entrySet()) {
-                relatorio.append(" 💊 ").append(entry.getKey()).append(": ").append(entry.getValue()).append(" un.\n");
-            }
-        }
-        relatorio.append("====================================\n");
-        return relatorio.toString();
+        // 3. Verificar se chega
+        return stockAtual >= qtdDesejada;
     }
 
     public static BlockChain restartSaudeCerteira() throws Exception {

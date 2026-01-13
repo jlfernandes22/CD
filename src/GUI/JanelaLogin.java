@@ -22,7 +22,7 @@ public class JanelaLogin extends javax.swing.JFrame {
      */
     public JanelaLogin() {
         try {
-            //core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
+            core.BlockChain newBlockchain = SaudeCerteira.SaudeWallet.restartSaudeCerteira();
             initComponents();
             setLocationRelativeTo(null);
         } catch (Exception ex) {
@@ -178,13 +178,8 @@ public class JanelaLogin extends javax.swing.JFrame {
             //janelaPrincipal.setLocationRelativeTo(null);
             System.out.println(t.toString());
 
-            SaudeCerteira.SaudeWallet wallet = SaudeWallet.load(name);
-
             // 3. Abre a MainGUI passando o utilizador logado
             MainGUI janelaPrincipal = new MainGUI(loggedUser);
-
-            // Se tiveres uma variável pública para o nome, podes manter
-            janelaPrincipal.nomeUser = name;
 
             janelaPrincipal.setVisible(true);
             this.dispose();

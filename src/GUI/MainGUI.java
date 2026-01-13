@@ -35,9 +35,10 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainGUI.class.getName());
     private PerfilUser janelaPerfil;
     private SaudeCerteira.User utilizadorLogado;
-
+    private String nomeUser = "";
+    
     RemoteNodeObject myremoteObject;
-    String nomeUser = "Master";
+    
 
     // Variável para guardar o bloco que estamos a tentar minerar
     core.Block blocoCandidato = null;
@@ -55,19 +56,22 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
     public MainGUI(SaudeCerteira.User user) {
         initComponents();
+        
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
 
         this.utilizadorLogado = user;
-        this.nomeUser = user.getUserName();
+        this.nomeUser = utilizadorLogado.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
+        aplicarPermissoesPorRole();
         carregarInventarioSNS24();
     }
-
+    
+    
     private void carregarInventarioSNS24() {
         if (this.utilizadorLogado != null) {
             try {
-                SaudeWallet wallet = SaudeWallet.load(this.utilizadorLogado.getUserName());
+                SaudeWallet wallet = SaudeWallet.load(nomeUser);
                 // Usa a chave privada para desencriptar o histórico
                 String relatorio = wallet.getInventarioDescodificado(this.utilizadorLogado.getPrivateKey());
                 jTextArea1.setText(relatorio);
@@ -106,6 +110,50 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             }
         } catch (Exception e) {
         }
+    }
+    
+    private void aplicarPermissoesPorRole() {
+        // 1. Obter o papel do utilizador logado
+        String role = "Utente"; // Padrão
+        try {
+            java.io.File userFile = new java.io.File("data_user/" + nomeUser + ".user");
+            if (userFile.exists()) {
+                try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(new java.io.FileInputStream(userFile))) {
+                    User u = (User) in.readObject();
+                    if (u.getRole() != null) {
+                        role = u.getRole();
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        
+        // Debug para confirmar quem entrou
+        System.out.println("A configurar GUI para: " + role);
+
+        // 2. Lógica para "CRIAR RECEITAS" (Apenas Médicos)
+        // Se NÃO for médico, removemos a aba de criar receitas
+        if (!"Médico".equals(role)) {
+            // Nota: pnCriarReceitas é o nome da variável do painel (veja no Inspector do NetBeans)
+            if (pnCriarReceitas != null) {
+                tpMain.remove(pnCriarReceitas);
+            }
+        }else{
+            if(jPanel2 != null){
+                tpMain.remove(jPanel2);
+                tpMain.remove(pnVerReceitas);
+            }
+        }
+
+        
+        
+        if ("Farmacêutico".equals(role)) {
+            tpMain.remove(pnCriarReceitas);
+            tpMain.remove(jPanel2);
+            
+        }
+        
+      
     }
 
     /**
@@ -937,6 +985,12 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
         String patientName = NomeUtente.getText().trim();
         String selectedDrug = (String) Medicamentos.getSelectedItem();
+        
+        if(patientName.equals(nomeUser)){
+            JOptionPane.showMessageDialog(this, "Erro: Não pode enviar medicamentos para si próprio.");
+            return;
+        }
+        
         int quantidade;
         try {
             quantidade = Integer.parseInt(QuantidadeMed.getText());
@@ -1065,6 +1119,12 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private void btAddTransaction1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransaction1ActionPerformed
         String farmaceuticoName = NomeFarmaceutico.getText().trim();
         String selectedDrug = (String) Medicamentos1.getSelectedItem();
+        
+        if(farmaceuticoName.equals(nomeUser)){
+            JOptionPane.showMessageDialog(this, "Erro: Não pode enviar medicamentos para si próprio.");
+            return;
+        }
+        
         int quantidade;
         try {
             quantidade = Integer.parseInt(QuantidadeMed1.getText());
@@ -1076,6 +1136,41 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             JOptionPane.showMessageDialog(this, "Preencha todos os campos.");
             return;
         }
+
+        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // ::: NOVA VERIFICAÇÃO DE STOCK (Adicionado)                      :::
+        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        User userAtual = null; 
+        try {
+            // 1. Carregar utilizador para obter a chave privada
+            userAtual = User.login(nomeUser);
+            
+            // Se a chave não estiver na memória, pede a password AGORA
+            // (Precisamos dela para ler o saldo E para assinar a transação depois)
+            if (userAtual.getPrivateKey() == null) {
+                String pass = JOptionPane.showInputDialog(this, "Password para confirmar saldo e envio:");
+                if (pass == null) return; // Cancelou
+                userAtual = User.login(nomeUser, pass);
+            }
+
+            // 2. Carregar a carteira do disco
+            SaudeWallet myWallet = SaudeWallet.load(nomeUser);
+
+            // 3. Perguntar à carteira se tem medicamentos suficientes
+            // (O método possoEnviar já valida se é Médico automaticamente)
+            if (!myWallet.possoEnviar(selectedDrug, quantidade, userAtual.getPrivateKey())) {
+                JOptionPane.showMessageDialog(this, 
+                    "ERRO: Stock insuficiente de " + selectedDrug + ".\n" +
+                    "Você não possui esta receita para poder aviar/enviar.");
+                return; // <--- BLOQUEIA O ENVIO AQUI
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao validar saldo: " + e.getMessage());
+            return;
+        }
+        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 
         try {
             // 1. Verificar se a pasta data_user existe
@@ -1106,26 +1201,17 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             // 4. Criar a Transação (A encriptação acontece no construtor)
             SaudeTransaction trans = new SaudeTransaction(nomeUser, farmaceuticoName, quantidade, selectedDrug);
 
-            User userAtual = User.login(nomeUser);
-           
-                if (userAtual.getPrivateKey() == null) {
-                    String pass = JOptionPane.showInputDialog(this, "Password para confirmar levantamento:");
-                    if (pass == null) {
-                        return;
-                    }
-                    userAtual = User.login(nomeUser, pass);
-                }
+            // 5. Assinar (Usamos o userAtual que já carregámos com a password no início)
+            trans.sign(userAtual.getPrivateKey());
 
-                trans.sign(userAtual.getPrivateKey());
+            // 6. Enviar
+            byte[] transBytes = utils.Serializer.objectToByteArray(trans);
+            String transString = java.util.Base64.getEncoder().encodeToString(transBytes);
 
-                // 6. Enviar
-                byte[] transBytes = utils.Serializer.objectToByteArray(trans);
-                String transString = Base64.getEncoder().encodeToString(transBytes);
-
-                if (myremoteObject != null) {
-                    myremoteObject.addTransaction(transString);
-                    JOptionPane.showMessageDialog(this, "Levantamento enviado com sucesso!");
-                }            
+            if (myremoteObject != null) {
+                myremoteObject.addTransaction(transString);
+                JOptionPane.showMessageDialog(this, "Levantamento enviado com sucesso!");
+            }            
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
