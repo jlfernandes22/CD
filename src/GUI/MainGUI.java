@@ -11,13 +11,10 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -27,33 +24,52 @@ import utils.Serializer;
 import utils.Utils;
 
 /**
- *
+ * Painel de Controlo Principal (Dashboard) da Aplicação Saúde Certeira.
+ * <p>
+ * Esta classe integra todos os módulos do sistema:
+ * <ul>
+ * <li><b>Rede P2P:</b> Inicia servidor RMI e conecta a outros nós.</li>
+ * <li><b>Blockchain:</b> Gere a visualização de transações e o consenso (Mineração).</li>
+ * <li><b>Carteira:</b> Permite criar e consultar receitas médicas baseadas em criptografia.</li>
+ * </ul>
+ * <p>
+ * A interface adapta-se dinamicamente ao papel do utilizador (Médico, Utente, Farmacêutico).
  * @author angelacsebastiao
  */
 public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerListener {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainGUI.class.getName());
+    
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: ESTADO DA SESSÃO
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     private PerfilUser janelaPerfil;
     private SaudeCerteira.User utilizadorLogado;
     private String nomeUser = "";
     
+    /** Objeto Remoto que expõe este nó à rede P2P (RMI). */
     RemoteNodeObject myremoteObject;
-    
 
-    // Variável para guardar o bloco que estamos a tentar minerar
+    /** Variável para guardar o bloco que estamos a tentar minerar atualmente. */
     core.Block blocoCandidato = null;
 
     /**
-     * Creates new form MainGUI
+     * Construtor Padrão (Modo Debug/Testes).
+     * Inicia sem utilizador logado.
      */
     public MainGUI() {
         initComponents();
         txtServerListeningObjectName.setText(RemoteNodeObject.REMOTE_OBJECT_NAME);
         setRandomPosition();
-        // Inicia servidor automaticamente
+        // Inicia servidor automaticamente para facilitar testes
         btStartServerActionPerformed(null);
     }
 
+    /**
+     * Construtor de Produção.
+     * Inicia a aplicação com as permissões do utilizador autenticado.
+     * @param user O utilizador que fez login com sucesso.
+     */
     public MainGUI(SaudeCerteira.User user) {
         initComponents();
         
@@ -63,18 +79,29 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         this.utilizadorLogado = user;
         this.nomeUser = utilizadorLogado.getUserName();
         this.janelaPerfil = new PerfilUser(user, this);
-        imgMiner.setVisible(false);       // Mostra o boneco a trabalhar
-        imgWinner.setVisible(false);     // Esconde o troféu (ainda não ganhou)
+        
+        // Configuração Visual Inicial
+        imgMiner.setVisible(false);        // Esconde o boneco a trabalhar
+        imgWinner.setVisible(false);       // Esconde o troféu
+        
+        // Aplica regras de negócio (esconde abas proibidas)
         aplicarPermissoesPorRole();
+        
+        // Carrega o saldo/receitas da blockchain
         carregarInventarioSNS24();
     }
     
-    
+    /**
+     * Carrega e desencripta o histórico da blockchain para mostrar o saldo atual.
+     * <p>
+     * Usa a {@link SaudeWallet} para reconstruir o estado (UTXO model simplificado)
+     * e gera um relatório legível na área de texto.
+     */
     private void carregarInventarioSNS24() {
         if (this.utilizadorLogado != null) {
             try {
                 SaudeWallet wallet = SaudeWallet.load(nomeUser);
-                // Usa a chave privada para desencriptar o histórico
+                // Usa a chave privada para desencriptar o histórico (Dual Envelope)
                 String relatorio = wallet.getInventarioDescodificado(this.utilizadorLogado.getPrivateKey());
                 jTextArea1.setText(relatorio);
             } catch (Exception e) {
@@ -83,6 +110,10 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         }
     }
 
+    /**
+     * Utilitário para posicionar janelas aleatoriamente no ecrã.
+     * Útil quando se abrem múltiplos nós na mesma máquina para simular uma rede.
+     */
     private void setRandomPosition() {
         this.setSize(776, 520);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -91,19 +122,25 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         int y = r.nextInt(screenSize.height - this.getHeight());
         setLocation(x, y);
 
+        // Gera uma porta aleatória para evitar conflitos (ex: 10001, 10005)
         txtServerListeningPort.setText("1000" + r.nextInt(10));
 
-        // Auto-start
+        // Auto-start dos serviços
         btStartServerActionPerformed(null);
         btConnectActionPerformed(null);
         loadMedicinesToGUI();
     }
 
+    /**
+     * Carrega a lista de medicamentos do ficheiro CSV para as ComboBoxes.
+     */
     private void loadMedicinesToGUI() {
         try {
             String path = "src/multimedia/medicines_output_medicines_en - Medicine.csv";
             List<String> medicines = Utils.getMedicineNames(path);
             String[] medArray = medicines.toArray(new String[0]);
+            
+            // Preenche as dropdowns de Médico e Farmacêutico
             if (Medicamentos != null) {
                 Medicamentos.setModel(new DefaultComboBoxModel<>(medArray));
             }
@@ -111,9 +148,15 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
                 Medicamentos1.setModel(new DefaultComboBoxModel<>(medArray));
             }
         } catch (Exception e) {
+            // Falha silenciosa se ficheiro não existir (usa itens default)
         }
     }
     
+    /**
+     * Gestão de Acesso Baseada em Papéis (RBAC).
+     * <p>
+     * Remove as abas da interface que não competem ao utilizador logado.
+     */
     private void aplicarPermissoesPorRole() {
         // 1. Obter o papel do utilizador logado
         String role = "Utente"; // Padrão
@@ -130,32 +173,31 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         } catch (Exception e) {
         }
         
-        // Debug para confirmar quem entrou
         System.out.println("A configurar GUI para: " + role);
 
-        // 2. Lógica para "CRIAR RECEITAS" (Apenas Médicos)
-        // Se NÃO for médico, removemos a aba de criar receitas
-        if (!"Médico".equals(role)) {
-            // Nota: pnCriarReceitas é o nome da variável do painel (veja no Inspector do NetBeans)
+        // 2. Regras de Interface
+        
+        // MÉDICO: Pode criar, não pode ver 'Minhas Receitas' (do ponto de vista de paciente)
+        if ("Médico".equals(role)) {
+             if(jPanel2 != null){
+                tpMain.remove(jPanel2);         // Remove aba de Levantar (Farmácia)
+                tpMain.remove(pnVerReceitas);   // Remove aba de Ver Receitas (Paciente)
+            }
+        } 
+        // UTENTE: Não pode criar, pode ver e levantar (se aplicável lógica futura)
+        else if ("Utente".equals(role)) {
             if (pnCriarReceitas != null) {
-                tpMain.remove(pnCriarReceitas);
+                tpMain.remove(pnCriarReceitas); // Remove aba de Criar
             }
-        }else{
-            if(jPanel2 != null){
-                tpMain.remove(jPanel2);
-                tpMain.remove(pnVerReceitas);
-            }
-        }
 
-        
-        
-        if ("Farmacêutico".equals(role)) {
-            tpMain.remove(pnCriarReceitas);
-            tpMain.remove(jPanel2);
-            
         }
-        
-      
+        // FARMACÊUTICO: Pode aviar (levantar), não pode criar
+        else if ("Farmacêutico".equals(role)) {
+            tpMain.remove(pnCriarReceitas);     // Remove aba de Criar
+            tpMain.remove(jPanel2); 
+            // Mantém jPanel2 (Levantar) e pnVerReceitas (Stock)
+        }
+       
     }
 
     /**
@@ -874,30 +916,36 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         // TODO add your handling code here:
     }//GEN-LAST:event_txtServerListeningPortActionPerformed
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: LOGICA DE REDE E SERVIDOR (RMI)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    
+    /**
+     * Inicia o servidor RMI para aceitar conexões P2P.
+     * <p>
+     * 1. Resolve o IP real da máquina (evita problemas com localhost/127.0.0.1 em LAN).
+     * 2. Regista o objeto remoto no Registry.
+     * 3. Atualiza a GUI com o estado do servidor.
+     */
     private void btStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartServerActionPerformed
         try {
-            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            // [FIX] FORCE RMI TO USE THE REAL IP (Not Docker/Localhost)
-            // This MUST be done before creating the RemoteNodeObject
+            // [FIX] Forçar uso do IP real para permitir conexões entre PCs diferentes
             String realIp = RemoteNodeObject.getRealIp();
             System.setProperty("java.rmi.server.hostname", realIp);
             System.out.println("RMI Hostname forced to: " + realIp);
-            // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-            //:::::::::: Objeto remoto  :::::::::::::::
             int port = Integer.parseInt(txtServerListeningPort.getText());
             String name = RemoteNodeObject.REMOTE_OBJECT_NAME;
 
-            // Now create the object (It will now use the correct IP in the Stub)
+            // Cria e publica o objeto remoto
             myremoteObject = new RemoteNodeObject(port, this);
-
             RMI.startRemoteObject(myremoteObject, port, name);
 
-            //:::::::: GUI  ::::::::::::::::
+            // Atualiza GUI
             this.setTitle(RMI.getRemoteName(port, name));
             this.txtNodeAddress.setText(RMI.getRemoteName(port, name));
 
-            // Re-enable miner listener now that object exists
+            // Adiciona o listener de mineração ao objeto remoto
             if (myremoteObject.miner != null) {
                 myremoteObject.miner.addListener(this);
             }
@@ -916,6 +964,10 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             btConnectActionPerformed(null);
     }//GEN-LAST:event_txtNodeAddressKeyPressed
 
+    /**
+     * Conecta a um nó remoto P2P.
+     * Recebe o endereço RMI (ex: //192.168.1.10:10010/remoteP2P) e adiciona à rede.
+     */
     private void btConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConnectActionPerformed
         try {
             String address = txtNodeAddress.getText();
@@ -927,28 +979,39 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
     }//GEN-LAST:event_btConnectActionPerformed
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: LOGICA DE MINERAÇÃO (POW)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    
+
+    /**
+     * Inicia o processo de Mineração de um novo Bloco.
+     * <p>
+     * 1. Carrega a Blockchain local para determinar o próximo ID e Hash anterior.
+     * 2. Seleciona transações pendentes (MemPool).
+     * 3. Cria um Bloco Candidato.
+     * 4. Inicia threads de mineração local e remota.
+     */
     private void btStartMinigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartMinigActionPerformed
-        // [CORREÇÃO] Desativar botão para impedir criação de múltiplas threads e erros de "Invalid Block"
-        btStartMinig.setEnabled(false); // Impede clicar 2 vezes
+        // Desativar botão para impedir cliques múltiplos
+        btStartMinig.setEnabled(false); 
         
-         
          try {
             // 1. Carregar Blockchain Local
             core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
             
-            // [CORREÇÃO CRÍTICA] Se a blockchain for null, o primeiro bloco tem de ser 0, não 1.
+            // Determinar próximo ID e Hash Anterior
             int nextID = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getID() + 1 : 0;
-            
-            // Hash anterior (0000... se for o primeiro bloco)
             byte[] prevHash = (bc != null && bc.getLastBlock() != null) ? bc.getLastBlock().getCurrentHash() : new byte[32];
 
-            // 2. Filtrar Transações
+            // 2. Filtrar Transações Pendentes (que ainda não estão na chain)
             List<String> pendentes = myremoteObject.getTransactions();
             List<SaudeCerteira.SaudeTransaction> txsReais = new ArrayList<>();
 
             for (String s : pendentes) {
                 try {
                     SaudeCerteira.SaudeTransaction t = (SaudeCerteira.SaudeTransaction) utils.Serializer.byteArrayToObject(java.util.Base64.getDecoder().decode(s));
+                    // Verifica se já existe (anti-replay)
                     if (bc != null && bc.existsTransaction(t.getSignature())) {
                         continue; 
                     }
@@ -963,17 +1026,20 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
                 return;
             }
 
-            // 3. Criar Bloco
+            // 3. Criar Bloco Candidato
             int dif = (int) spZeros.getValue();
             this.blocoCandidato = new core.Block(nextID, prevHash, dif, txsReais);
 
-            // 4. Iniciar Mineração
+            // 4. Iniciar Mineração (Multi-threaded)
             byte[] headerBytes = this.blocoCandidato.getHeaderData();
             String headerParaMinar = java.util.Base64.getEncoder().encodeToString(headerBytes);
             
             new Thread(() -> {
                 try {
+                    // Manda minerar localmente (bloqueante)
                     myremoteObject.mine(headerParaMinar, dif);
+                    
+                    // Manda a rede minerar (competição)
                     for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
                         try { node.mine(headerParaMinar, dif); } catch (Exception e) {}
                     }
@@ -989,6 +1055,20 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         }
     }//GEN-LAST:event_btStartMinigActionPerformed
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: LOGICA DE CRIAÇÃO DE TRANSAÇÕES (MÉDICO)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    /**
+     * Cria e envia uma nova Receita Médica (Transação).
+     * <p>
+     * Fluxo:
+     * 1. Validações (Campos, Auto-envio).
+     * 2. Procura Utente na rede (para obter Chave Pública).
+     * 3. Cria Transação com Envelope Duplo (AES+RSA).
+     * 4. Assina Digitalmente.
+     * 5. Propaga para a rede.
+     */
     private void btAddTransactionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransactionActionPerformed
         String patientName = NomeUtente.getText().trim();
         String selectedDrug = (String) Medicamentos.getSelectedItem();
@@ -1011,13 +1091,13 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         }
 
         try {
-            // 1. Verificar se a pasta data_user existe
+            // 1. Verificar/Criar pasta data_user
             java.io.File folder = new java.io.File("data_user");
             if (!folder.exists()) {
                 folder.mkdirs();
             }
 
-            // 2. Procurar o utilizador na rede P2P
+            // 2. Procurar o utilizador destino na rede
             User pacienteEncontrado = myremoteObject.searchUser(patientName);
 
             if (pacienteEncontrado == null) {
@@ -1025,34 +1105,31 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
                 return;
             }
 
-            // 3. GRAVAR A CHAVE MANUALMENTE (Para garantir que o ficheiro existe)
+            // 3. Persistir chaves do destinatário localmente (Cache)
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream("data_user/" + patientName + ".pub")) {
                 fos.write(pacienteEncontrado.getPublicKey().getEncoded());
                 fos.flush();
             }
-
-            // Gravar também o objeto User para uso futuro
             try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + patientName + ".user"))) {
                 out.writeObject(pacienteEncontrado);
             }
 
-            // 4. Criar a Transação (A encriptação acontece no construtor)
+            // 4. Criar a Transação Segura
             SaudeTransaction trans = new SaudeTransaction(nomeUser, patientName, quantidade, selectedDrug);
 
-            // 5. Assinar
+            // 5. Assinar com Chave Privada
             User userAtual = User.login(nomeUser);
             if (userAtual.isMedico()) {
+                // Se a chave não estiver em memória, pede password
                 if (userAtual.getPrivateKey() == null) {
                     String pass = JOptionPane.showInputDialog(this, "Password para assinar:");
-                    if (pass == null) {
-                        return;
-                    }
+                    if (pass == null) return;
                     userAtual = User.login(nomeUser, pass);
                 }
 
                 trans.sign(userAtual.getPrivateKey());
 
-                // 6. Enviar
+                // 6. Enviar para a Rede
                 byte[] transBytes = utils.Serializer.objectToByteArray(trans);
                 String transString = Base64.getEncoder().encodeToString(transBytes);
 
@@ -1123,6 +1200,14 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         // TODO add your handling code here:
     }//GEN-LAST:event_NomeFarmaceuticoActionPerformed
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: LOGICA DE AVIAMENTO (UTENTE/FARMÁCIA)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    /**
+     * Envia uma transação de "Levantamento" (transferência de stock).
+     * Inclui validação de stock prévia (Double Spending Prevention).
+     */
     private void btAddTransaction1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddTransaction1ActionPerformed
         String farmaceuticoName = NomeFarmaceutico.getText().trim();
         String selectedDrug = (String) Medicamentos1.getSelectedItem();
@@ -1145,26 +1230,23 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         }
 
         // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        // ::: NOVA VERIFICAÇÃO DE STOCK (Adicionado)                      :::
+        // ::: VERIFICAÇÃO DE STOCK (IMPEDE DOUBLE SPENDING)               :::
         // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         User userAtual = null; 
         try {
-            // 1. Carregar utilizador para obter a chave privada
+            // 1. Carregar utilizador e Chave Privada
             userAtual = User.login(nomeUser);
             
-            // Se a chave não estiver na memória, pede a password AGORA
-            // (Precisamos dela para ler o saldo E para assinar a transação depois)
             if (userAtual.getPrivateKey() == null) {
                 String pass = JOptionPane.showInputDialog(this, "Password para confirmar saldo e envio:");
-                if (pass == null) return; // Cancelou
+                if (pass == null) return; 
                 userAtual = User.login(nomeUser, pass);
             }
 
-            // 2. Carregar a carteira do disco
+            // 2. Carregar a carteira (Histórico da Blockchain)
             SaudeWallet myWallet = SaudeWallet.load(nomeUser);
 
-            // 3. Perguntar à carteira se tem medicamentos suficientes
-            // (O método possoEnviar já valida se é Médico automaticamente)
+            // 3. Validar se possui o ativo digital
             if (!myWallet.possoEnviar(selectedDrug, quantidade, userAtual.getPrivateKey())) {
                 JOptionPane.showMessageDialog(this, 
                     "ERRO: Stock insuficiente de " + selectedDrug + ".\n" +
@@ -1176,42 +1258,32 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             JOptionPane.showMessageDialog(this, "Erro ao validar saldo: " + e.getMessage());
             return;
         }
-        // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
         try {
-            // 1. Verificar se a pasta data_user existe
+            // ... (Lógica de criação de transação idêntica à anterior) ...
+            // 1. Cache do Destinatário
             java.io.File folder = new java.io.File("data_user");
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
+            if (!folder.exists()) folder.mkdirs();
 
-            // 2. Procurar o utilizador na rede P2P
             User pacienteEncontrado = myremoteObject.searchUser(farmaceuticoName);
-
             if (pacienteEncontrado == null) {
-                JOptionPane.showMessageDialog(this, "Farmacêutico '" + farmaceuticoName + "' não encontrado na rede.");
+                JOptionPane.showMessageDialog(this, "Destinatário '" + farmaceuticoName + "' não encontrado.");
                 return;
             }
 
-            // 3. GRAVAR A CHAVE MANUALMENTE (Para garantir que o ficheiro existe)
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream("data_user/" + farmaceuticoName + ".pub")) {
                 fos.write(pacienteEncontrado.getPublicKey().getEncoded());
                 fos.flush();
             }
-
-            // Gravar também o objeto User para uso futuro
             try (java.io.ObjectOutputStream out = new java.io.ObjectOutputStream(new java.io.FileOutputStream("data_user/" + farmaceuticoName + ".user"))) {
                 out.writeObject(pacienteEncontrado);
             }
 
-            // 4. Criar a Transação (A encriptação acontece no construtor)
+            // 2. Criar e Assinar
             SaudeTransaction trans = new SaudeTransaction(nomeUser, farmaceuticoName, quantidade, selectedDrug);
-
-            // 5. Assinar (Usamos o userAtual que já carregámos com a password no início)
             trans.sign(userAtual.getPrivateKey());
 
-            // 6. Enviar
+            // 3. Enviar
             byte[] transBytes = utils.Serializer.objectToByteArray(trans);
             String transString = java.util.Base64.getEncoder().encodeToString(transBytes);
 
@@ -1232,6 +1304,10 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
     private void Medicamentos1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Medicamentos1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_Medicamentos1ActionPerformed
+
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: EVENTOS DE REDE (NodeListener)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     @Override
     public void onStart(String message) {
@@ -1262,19 +1338,23 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
 
     }
 
+    /**
+     * Recebe novas transações ou blocos da rede.
+     * Atualiza a lista de pendentes ou o inventário.
+     */
     @Override
     public void onTransaction(String data) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // Se for sinal de bloco recebido
+                // Se for sinal de bloco recebido (Novo bloco na chain)
                 if (data.equals("BlockReceived")) {
                     txtLstTransactions.setText("");
-                    // [CORREÇÃO] Atualizar carteira visualmente
+                    // Atualizar inventário visualmente
                     carregarInventarioSNS24();
                     return;
                 }
 
-                // Se for transação normal
+                // Se for transação pendente (Mempool)
                 try {
                     byte[] bytes = Base64.getDecoder().decode(data);
                     SaudeTransaction tx = (SaudeTransaction) Serializer.byteArrayToObject(bytes);
@@ -1288,14 +1368,17 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         });
     }
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: EVENTOS DE MINERAÇÃO (MinerListener)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
     @Override
     public void onStartMining(String message, int dificulty) {
         SwingUtilities.invokeLater(() -> {
-            imgMiner.setVisible(true);
+            imgMiner.setVisible(true);   // Feedback visual
             imgWinner.setVisible(false);
             txtMinerMessage.setText(message);
         });
-
     }
 
     @Override
@@ -1303,7 +1386,7 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
         SwingUtilities.invokeLater(() -> {
             try {
                 imgMiner.setVisible(false);
-                btStartMinig.setEnabled(true); // [CORREÇÃO] Reativar botão sempre
+                btStartMinig.setEnabled(true); // Reativa botão sempre
 
                 if (nonce >= 0) {
                     txtNonce.setText("" + nonce);
@@ -1313,28 +1396,30 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
             } catch (Exception ex) {
             }
         });
-
     }
 
+    /**
+     * Invocado quando este nó encontra o nonce vencedor!
+     * Cria o bloco final, propaga e reclama a vitória.
+     */
     @Override
     public void onNonceFound(int nonce) {
         SwingUtilities.invokeLater(() -> {
             try {
-                imgWinner.setVisible(true);
-                btStartMinig.setEnabled(true); // Reativar botão
+                imgWinner.setVisible(true); // Mostra Troféu
+                btStartMinig.setEnabled(true);
 
-                // 1. Parar mineradores
+                // 1. Parar mineradores da rede (Consenso)
                 myremoteObject.stopMining(nonce);
                 for (RemoteNodeInterface node : myremoteObject.getNetwork()) {
                     try { node.stopMining(nonce); } catch (Exception e) {}
                 }
 
-                // 2. Validar e Propagar
+                // 2. Validar integridade e Propagar
                 if (this.blocoCandidato != null) {
-                    // Carrega a blockchain para verificar consistência
+                    // Carrega a blockchain para verificar se mudou entretanto (Race Condition)
                     core.BlockChain bc = core.BlockChain.load(core.BlockChain.FILE_PATH + "blockchain.bch");
                     
-                    // Se a blockchain existe, validar se o nosso bloco liga corretamente ao último
                     if (bc != null && bc.getLastBlock() != null) {
                         byte[] hashAtual = bc.getLastBlock().getCurrentHash();
                         if (!java.util.Arrays.equals(this.blocoCandidato.getPreviousHash(), hashAtual)) {
@@ -1344,13 +1429,13 @@ public class MainGUI extends javax.swing.JFrame implements Nodelistener, MinerLi
                         }
                     }
 
-                    // Se for válido, define o nonce e propaga
+                    // Se for válido, sela o bloco com o nonce e propaga
                     this.blocoCandidato.setNonce(nonce);
                     byte[] blockBytes = utils.Serializer.objectToByteArray(this.blocoCandidato);
                     
                     myremoteObject.propagateBlock(blockBytes);
                     
-                    // Limpar GUI
+                    // Limpar GUI e atualizar stock
                     txtLstTransactions.setText("");
                     carregarInventarioSNS24(); 
                     

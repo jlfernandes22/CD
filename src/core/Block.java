@@ -1,19 +1,3 @@
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
-//::                                                                         ::
-//::      Antonio Manuel Rodrigues Manso                                     ::
-//::                                                                         ::
-//::      I N S T I T U T O    P O L I T E C N I C O   D E   T O M A R       ::
-//::      Escola Superior de Tecnologia de Tomar                             ::
-//::      e-mail: manso@ipt.pt                                               ::
-//::      url   : http://orion.ipt.pt/~manso                                 ::
-//::                                                                         ::
-//::      This software was build with the purpose of investigate and        ::
-//::      learning.                                                          ::
-//::                                                                         ::
-//::                                                               (c)2025   ::
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- //////////////////////////////////////////////////////////////////////////////
-
 package core;
 
 import java.io.FileInputStream;
@@ -30,45 +14,100 @@ import utils.SecurityUtils;
 import utils.Utils;
 
 /**
- * Created on 08/10/2025, 14:45:02
+ * Representa um Bloco na Blockchain (Unidade fundamental de armazenamento).
+ * <p>
+ * Cada bloco contém:
+ * <ul>
+ * <li><b>Cabeçalho (Header):</b> Metadados leves (Hash anterior, Merkle Root,
+ * Nonce, Timestamp).</li>
+ * <li><b>Corpo (Body):</b> Os dados reais (Transações) organizados numa Árvore
+ * de Merkle.</li>
+ * </ul>
+ * <p>
+ * O bloco implementa o protocolo <b>Proof of Work (PoW)</b> para garantir
+ * segurança e consenso na rede.
  *
- * @author manso - computer
+ * @author aluno_25979, aluno_25946
+ * @version 2.0
  */
 public class Block implements Serializable {
 
-    //::::::: information of the block :::::::::::::::
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: METADADOS DO BLOCO (HEADER)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    /**
+     * Identificador único do bloco (Altura/Index). O Genesis é 0.
+     */
     private final int ID;
+
+    /**
+     * Hash do bloco anterior. É isto que cria o elo da corrente (Chain).
+     */
     private final byte[] previousHash;
+
+    /**
+     * * Raiz da Árvore de Merkle. Resume todos os dados do bloco num único
+     * hash de 32 bytes. Permite validar o conteúdo sem ler todas as transações.
+     */
     private final byte[] merkleRoot;
-    private final MerkleTree data; //Merkle Tree
-    private final long timestamp; //unix era
-    private final int dificulty; //number of zeros 
-    //:::::::: security Protocol - POW ::::::::::::::::
+
+    /**
+     * Estrutura de dados que armazena as transações (O conteúdo real).
+     */
+    private final MerkleTree data;
+
+    /**
+     * Carimbo de tempo da criação do bloco (Unix Epoch).
+     */
+    private final long timestamp;
+
+    /**
+     * Dificuldade da mineração (Número de zeros exigidos no início do hash).
+     */
+    private final int dificulty;
+
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: PROTOCOLO DE SEGURANÇA (MINERAÇÃO)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    /**
+     * * "Number used ONCE". O número que o mineiro tem de adivinhar para
+     * resolver o puzzle criptográfico.
+     */
     private int nonce;
+
+    /**
+     * O Hash final do bloco validado (Assinatura do bloco).
+     */
     private byte[] currentHash;
 
     /**
-     * constructor
+     * Constrói um novo bloco (ainda não minerado).
      *
-     * @param ID ID of the block
-     * @param previousHash Hash of the previous block
-     * @param dificulty Number of zeros in the POW
-     * @param data List of elements to store in block
+     * @param ID Índice do bloco na cadeia.
+     * @param previousHash Hash do bloco anterior (vínculo).
+     * @param dificulty Nível de dificuldade para mineração.
+     * @param data Lista de transações ou dados a incluir no bloco.
      */
     public Block(int ID, byte[] previousHash, int dificulty, List data) {
         this.ID = ID;
         this.previousHash = previousHash;
         this.dificulty = dificulty;
         this.timestamp = System.currentTimeMillis();
-        //build a merkleTree
+
+        // Constrói a Merkle Tree imediatamente para garantir integridade dos dados
         this.data = new MerkleTree(data);
         this.merkleRoot = this.data.getRoot();
     }
 
     /**
-     * data to be mined
+     * Prepara os dados do cabeçalho para serem minerados.
+     * <p>
+     * Nota: A mineração é feita apenas sobre o cabeçalho (que inclui a Merkle
+     * Root), e não sobre os dados brutos. Isso torna a mineração rápida
+     * independente do tamanho do bloco.
      *
-     * @return byte array with fields to be mined
+     * @return Array de bytes contendo ID + Timestamp + PrevHash + MerkleRoot +
+     * Dificuldade.
      */
     public byte[] getHeaderData() {
         byte[] bytes = Utils.toBytes(ID);
@@ -79,35 +118,45 @@ public class Block implements Serializable {
     }
 
     /**
-     * Mine Current Block
+     * Executa a Mineração (Proof of Work).
+     * <p>
+     * Delega a tarefa pesada para a classe {@link GUI.MinerDistibuted}, que
+     * pode usar múltiplas threads para encontrar o nonce.
      *
-     * @throws Exception
+     * @throws Exception Se houver erro no processo de hashing.
      */
     public void mine() throws Exception {
+        // Converter cabeçalho para Base64 para facilitar transporte/visualização
         String dataTxt = Base64.getEncoder().encodeToString(getHeaderData());
-        
-        // CORREÇÃO: Usar o MinerDistibuted da GUI
-        // Certifique-se que a classe MinerDistibuted está acessível (public)
+
+        // Instancia o mineiro distribuído (Componente visual/multi-thread)
         GUI.MinerDistibuted miner = new GUI.MinerDistibuted();
+
+        // Fica bloqueado aqui até encontrar o nonce
         int pow = miner.mine(dataTxt, this.dificulty);
-        
+
+        // Define o nonce vencedor e calcula o hash final
         setNonce(pow);
     }
 
     /**
-     * update nonce and the hash
+     * Define o Nonce vencedor e calcula o Hash final do bloco.
      *
-     * @param nonce nonce
-     * @throws Exception
+     * @param nonce O número encontrado que resolve o puzzle.
+     * @throws Exception Se o algoritmo SHA-256 não estiver disponível.
      */
     public void setNonce(int nonce) throws Exception {
         this.nonce = nonce;
         String hash = Base64.getEncoder().encodeToString(getHeaderData());
-        // CORREÇÃO: "SHA-256" direto em vez de Miner.hashAlgorithm
+
+        // Calcula o hash final: SHA-256( Header + Nonce )
         this.currentHash = SecurityUtils.calculateHash(
                 (hash + nonce).getBytes(), "SHA-256");
     }
 
+    /**
+     * Gera uma representação textual do cabeçalho (para logs e debug).
+     */
     public String toStringHeader() {
         StringBuilder txt = new StringBuilder();
         txt.append("ID ").append(ID);
@@ -117,8 +166,6 @@ public class Block implements Serializable {
         txt.append("\nmerkleRoot ").append(Base64.getEncoder().encodeToString(merkleRoot));
         txt.append("\ndificulty ").append(dificulty);
         txt.append("\nnonce ").append(nonce);
-        
-        
         return txt.toString();
     }
 
@@ -134,37 +181,48 @@ public class Block implements Serializable {
     }
 
     /**
-     * validate the block - Contains zeros - Hash calculated match with
-     * currentHash
+     * Valida a integridade do bloco (Proof of Work).
+     * <p>
+     * Verifica dois critérios:
+     * <ol>
+     * <li><b>Dificuldade:</b> O hash atual começa com o número correto de
+     * zeros?</li>
+     * <li><b>Integridade:</b> O hash calculado (Header + Nonce) bate certo com
+     * o hash armazenado?</li>
+     * </ol>
      *
-     * @return true if valid
+     * @return true se o bloco for válido e seguro.
      */
     public boolean isValid() {
         try {
-            //:::::::::: zeros no inicio :::::::::::::::::::::::::
+            // 1. Verificar Dificuldade (Zeros no início do Hash em Base64)
             String txtHash = Base64.getEncoder().encodeToString(currentHash);
             String hashZeros = txtHash.substring(0, this.dificulty);
             String allZeros = String.format("%0" + dificulty + "d", 0);
+
             if (!hashZeros.equals(allZeros)) {
-                return false;
+                return false; // Falhou no teste de dificuldade
             }
 
-            //:::::::::: o hash é valido ::::::::::::::::::::::::::::
-            txtHash = Base64.getEncoder().encodeToString(getHeaderData()) + nonce;
-            // CORREÇÃO: "SHA-256" direto
-            byte[] myHash = SecurityUtils.calculateHash(
-                    txtHash.getBytes(), "SHA-256");
+            // 2. Verificar Integridade Matemática (Recalcular hash)
+            String headerTxt = Base64.getEncoder().encodeToString(getHeaderData()) + nonce;
+            byte[] myHash = SecurityUtils.calculateHash(headerTxt.getBytes(), "SHA-256");
+
             return Arrays.equals(myHash, currentHash);
+
         } catch (Exception ex) {
             return false;
         }
     }
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: PERSISTÊNCIA (GRAVAÇÃO EM DISCO)
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     /**
-     * save the block in the file path/ID.block
+     * Guarda o bloco num ficheiro individual. Formato: "caminho/ID.blk"
      *
-     * @param path path of the block
-     * @throws IOException
+     * @param path Diretoria de destino.
+     * @throws IOException Erro de escrita.
      */
     public void save(String path) throws IOException {
         try (ObjectOutputStream out = new ObjectOutputStream(
@@ -174,11 +232,11 @@ public class Block implements Serializable {
     }
 
     /**
-     * Loads a block from the file
+     * Carrega um bloco específico do disco.
      *
-     * @param path path of blocks
-     * @param ID id of the block
-     * @return block readed
+     * @param path Diretoria onde estão os blocos.
+     * @param ID O ID do bloco a carregar.
+     * @return O objeto Block ou null se não existir/erro.
      */
     public static Block load(String path, int ID) {
         try (ObjectInputStream in = new ObjectInputStream(
@@ -189,6 +247,9 @@ public class Block implements Serializable {
         }
     }
 
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    // :: GETTERS
+    // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     public int getID() {
         return ID;
     }
@@ -224,7 +285,4 @@ public class Block implements Serializable {
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     private static final long serialVersionUID = 202510081445L;
     //:::::::::::::::::::::::::::  Copyright(c) M@nso  2025  :::::::::::::::::::
-
-
-///////////////////////////////////////////////////////////////////////////
 }
