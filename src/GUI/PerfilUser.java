@@ -5,63 +5,91 @@
 package GUI;
 
 /**
- *
+ * Janela de Perfil do Utilizador.
+ * <p>
+ * Apresenta os detalhes da conta do utilizador atualmente autenticado, incluindo:
+ * <ul>
+ * <li><b>Dados Pessoais:</b> Nome, Nº Utente, Unidade de Saúde, etc.</li>
+ * <li><b>Segurança:</b> Representação visual das chaves criptográficas (RSA/AES).</li>
+ * </ul>
+ * <p>
+ * Esta janela é meramente informativa e não permite edição.
  * @author angelacsebastiao
  */
 public class PerfilUser extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(PerfilUser.class.getName());
-private SaudeCerteira.User user;
+    
+    /** Referência ao objeto do utilizador cujos dados serão exibidos. */
+    private SaudeCerteira.User user;
+    
+    /** Referência à janela principal para poder voltar atrás corretamente. */
     private javax.swing.JFrame mainGUI;
+
     /**
-     * Creates new form PerfilUser
+     * Construtor Principal.
+     * @param user O objeto User contendo os dados a mostrar.
+     * @param mainGUI A instância da janela principal (MainGUI) que chamou este perfil.
      */
    public PerfilUser(SaudeCerteira.User user, javax.swing.JFrame mainGUI) {
         initComponents();
         this.user = user;
         this.mainGUI = mainGUI;
+        
+        // Carrega os dados para a área de texto
         preencherDados(user);
+        
+        // Bloqueia a edição (modo leitura apenas)
         jTextArea1.setEditable(false);
         
-        // Garante que ao fechar no 'X' não fecha o programa todo
+        // Garante que ao fechar no 'X' não encerra toda a aplicação
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     }
 
+    /**
+     * Construtor padrão (sem argumentos).
+     * Usado principalmente pelo editor visual ou testes rápidos.
+     */
     public PerfilUser() {
         initComponents();
     }
 
+    /**
+     * Formata e exibe os dados do utilizador na JTextArea.
+     * Converte as chaves binárias para Base64 para serem legíveis.
+     * @param user O utilizador a apresentar.
+     */
    private void preencherDados(SaudeCerteira.User user) {
     if (user != null) {
         StringBuilder info = new StringBuilder();
         
-        // Dados Pessoais
+        // :::: SECÇÃO 1: Dados Pessoais ::::
         info.append("=== PERFIL DO UTILIZADOR ===\n");
         info.append("Nome: ").append(user.userName).append("\n");
         info.append("Data Nascimento: ").append(user.dataNascimento).append("\n");
         info.append("Nº Utente: ").append(user.numeroUtente).append("\n");
         info.append("Unidade de Saúde: ").append(user.getUnidadeSaude()).append("\n\n");
         
+        // :::: SECÇÃO 2: Segurança ::::
         info.append("=== CREDENCIAIS CRIPTOGRÁFICAS ===\n");
         
-        // Chave Pública
+        // Chave Pública (Identidade na Blockchain)
         String pubKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.getPublicKey().getEncoded());
         info.append("Chave Pública (RSA):\n").append(pubKeyBase64).append("\n\n");
         
-        // Chave AES
+        // Chave AES (Segurança dos Dados)
         String aesKeyBase64 = java.util.Base64.getEncoder().encodeToString(user.aesKey.getEncoded());
         info.append("Chave AES:\n").append(aesKeyBase64).append("\n\n");
         
-        // Chave Privada (Protegida)
+        // Chave Privada (Nunca mostrada por segurança)
         info.append("Chave Privada:\n******** (Protegida por Password)");
 
-        // Definir o texto no JTextArea
+        // Renderizar na GUI
         jTextArea1.setText(info.toString());
         
-      
-    }else {
-        // Se aparecer isto, o problema é no Login (o user não foi passado)
-        jTextArea1.setText("ERRO: Nenhum utilizador logado encontrado.");
+    } else {
+        // Tratamento de erro caso o login tenha falhado silenciosamente
+        jTextArea1.setText("ERRO CRÍTICO: Nenhum utilizador logado encontrado.");
     }
 }
     /**
@@ -81,6 +109,7 @@ private SaudeCerteira.User user;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 153, 153));
         setForeground(new java.awt.Color(0, 153, 153));
+        setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(0, 204, 204));
 
@@ -135,14 +164,22 @@ private SaudeCerteira.User user;
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Ação do botão "Voltar".
+     * <p>
+     * Reabre a janela principal (MainGUI) que estava escondida e fecha esta janela de perfil.
+     * @param evt O evento de clique.
+     */
     private void voltarMainGUIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_voltarMainGUIActionPerformed
-if (mainGUI != null) {
-        mainGUI.setVisible(true); // Mostra a MainGUI que já tem o user
-        this.dispose(); // Fecha apenas a janela de Perfil
-    }    }//GEN-LAST:event_voltarMainGUIActionPerformed
+        if (mainGUI != null) {
+            mainGUI.setVisible(true); // Restaura a MainGUI
+            this.dispose(); // Destrói apenas a janela de Perfil
+        }    
+    }//GEN-LAST:event_voltarMainGUIActionPerformed
 
     /**
-     * @param args the command line arguments
+     * Ponto de entrada (Main) para testes isolados da janela.
+     * @param args Argumentos da linha de comandos.
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
